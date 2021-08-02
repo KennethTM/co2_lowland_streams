@@ -30,11 +30,11 @@ slide_5_fig <- slide_5 %>%
   scale_color_viridis_d()+
   scale_y_continuous(limits = c(0, 3), breaks = c(0, 1, 2, 3), labels = c(1, 10, 100, 1000))+
   scale_x_continuous(breaks = c(-1, 0, 1, 2), labels = c(0.1, 1, 10, 100))+
-  annotate("text", x=1.7, y=3, label = qr_eqn(qr_10, "0.1"), parse=TRUE)+
-  annotate("text", x=1.7, y=2.8, label = qr_eqn(qr_50, "0.5"), parse=TRUE)+
-  annotate("text", x=1.7, y=2.6, label = qr_eqn(qr_90, "0.9"), parse=TRUE)+
-  ylab(expression(log[10]*"(CO"[2]~"["*mu*mol~L^{-1}*"])"))+
-  xlab(expression(log[10]*"(wetted area [m"^{2}*"])"))
+  annotate("text", x=1.5, y=3, label = qr_eqn(qr_10, "0.1"), parse=TRUE)+
+  annotate("text", x=1.5, y=2.8, label = qr_eqn(qr_50, "0.5"), parse=TRUE)+
+  annotate("text", x=1.5, y=2.6, label = qr_eqn(qr_90, "0.9"), parse=TRUE)+
+  ylab(expression(CO[2]~"("*mu*mol~L^{-1}*")"))+
+  xlab(expression(Wetted~area~"(m"^{2}*")"))
 
 #slide 6
 slide_6 <- read_excel(rawdata_path, sheet = "slide_6") %>% 
@@ -52,8 +52,8 @@ slide_6_fig <- slide_6 %>%
   scale_x_log10(limits=c(1, 1000))+
   scale_y_log10(limits=c(1, 1000))+
   annotate("text", x=10, y=1000, label = lm_eqn(slide_6_lm), parse=TRUE)+
-  ylab(expression("Evening"~log[10]*"(CO"[2]~"["*mu*mol~L^{-1}*"])"))+
-  xlab(expression("Morning"~log[10]*"(CO"[2]~"["*mu*mol~L^{-1}*"])"))
+  ylab(expression("Afternoon"~CO[2]~"("*mu*mol~L^{-1}*")"))+
+  xlab(expression("Morning"~CO[2]~"("*mu*mol~L^{-1}*")"))
 
 fig_2 <- slide_5_fig/slide_6_fig+plot_annotation(tag_levels = "A")
 
@@ -129,9 +129,9 @@ xy <- expand.grid( x = x.pred, y = y.pred)
 z.pred <- matrix(predict(fit, newdata = xy), nrow = grid.lines, ncol = grid.lines)
 fitpoints <- predict(fit)
 
-png(paste0(figures_path, "fig_3.png"), width = 129, height = 129, units = "mm", res = 300)
+png(paste0(figures_path, "fig_4.png"), width = 129, height = 129, units = "mm", res = 300)
 scatter3D(x, y, z, pch = 19, cex = 1, colvar = NULL, col="black",
-          theta = 120, phi = 20, bty="b", ticktype="simple", #ticktype="detailed"
+          theta = 120, phi = 20, bty="b", ticktype="detailed", #ticktype="simple"
           xlab = "log10(Chl. a)", ylab = "Water temp.", zlab = "log10(CO2)",
           surf = list(x = x.pred, y = y.pred, z = z.pred, facets = TRUE, fit = fitpoints,
                       col=ramp.col(col = c("seagreen1", "dodgerblue3"), n = 300, alpha=0.5))) #, border="black", 
@@ -142,19 +142,20 @@ slide_10 <- read_excel(rawdata_path, sheet = "slide_10") %>%
   na.omit() %>% 
   mutate(co2 = 10^log_co2,
          date = ymd("1995-01-01")+time) %>% 
-  rename(Site = site)
+  rename(Site = site) %>% 
+  filter(Site != "Pølebro 2")
 
-fig_4 <- slide_10 %>% 
+fig_5 <- slide_10 %>% 
   ggplot(aes(date, co2, col=Site))+
   geom_point(size=0.7)+
   geom_line()+
   scale_y_log10()+
-  ylab(expression(log[10]*"(CO"[2]~"["*mu*mol~l^{-1}*"])"))+
-  scale_x_date(date_breaks = "3 month", date_labels = "%B")+
+  ylab(expression(CO[2]~"("*mu*mol~L^{-1}*")"))+
+  scale_x_date(date_breaks = "3 month", date_labels = "%b")+
   xlab("Month")+
   scale_color_brewer(palette = "Dark2")
 
-ggsave(paste0(figures_path, "fig_4.png"), fig_3, width = 129, height = 84, units = "mm")
+ggsave(paste0(figures_path, "fig_5.png"), fig_5, width = 129, height = 84, units = "mm")
 
 #slide 11
 slide_11 <- read_excel(rawdata_path, sheet = "slide_11") %>% 
@@ -165,11 +166,11 @@ slide_11_fig <- slide_11 %>%
   ggplot(aes(`June-Aug`, `Sep-May`, shape = `Lake influence`)) +
   geom_abline(intercept = 0, slope=1, linetype=3)+
   geom_point()+
-  scale_x_log10(limits=c(1, 400))+
-  scale_y_log10(limits=c(1, 400))+
+  scale_x_continuous(limits=c(1, 400))+
+  scale_y_continuous(limits=c(1, 400))+
   scale_shape_manual(values = c("Lake" = 19, "No lake" = 1))+
-  ylab(expression("Sep-May"~log[10]*"(CO"[2]~"["*mu*mol~L^{-1}*"])"))+
-  xlab(expression("June-Aug"~log[10]*"(CO"[2]~"["*mu*mol~L^{-1}*"])"))
+  ylab(expression("Sep-May CO"[2]~"("*mu*mol~L^{-1}*")"))+
+  xlab(expression("June-Aug CO"[2]~"("*mu*mol~L^{-1}*")"))
 
 #slide 13
 slide_13 <- read_excel(rawdata_path, sheet = "slide_13") %>% 
@@ -179,7 +180,7 @@ slide_13 <- read_excel(rawdata_path, sheet = "slide_13") %>%
   filter(position == "down") %>% 
   mutate(log_co2 = log10(co2),
          log_chl = log10(chl),
-         Time = factor(ifelse(time == "morning", "Morning", "Evening"), levels = c("Morning", "Evening")))
+         Time = factor(ifelse(time == "morning", "Morning", "Afternoon"), levels = c("Morning", "Afternoon")))
 
 slide_13_lm0 <- lm(log_co2~log_chl*time, data = slide_13)
 slide_13_lm1 <- lm(log_co2~log_chl+time, data = slide_13)
@@ -193,14 +194,14 @@ slide_13_fig <- slide_13 %>%
   scale_y_log10()+
   scale_x_log10()+
   scale_shape_manual(values=c(1, 19))+
-  ylab(expression(log[10]*"(CO"[2]~"["*mu*mol~l^{-1}*"])"))+
-  xlab(expression(log[10]*"(Chl. a [mg"~L^{-1}*"])"))+
+  ylab(expression("CO"[2]~"("*mu*mol~l^{-1}*")"))+
+  xlab(expression("Chl. "*italic(a)~"(mg"~L^{-1}*")"))+
   scale_color_viridis_d()+
   annotate("text", x=50, y=100, label = lm_eqn(slide_13_lm2), parse=TRUE)
 
-fig_5 <- slide_11_fig/slide_13_fig+plot_annotation(tag_levels = "A")
+fig_3 <- slide_11_fig/slide_13_fig+plot_annotation(tag_levels = "A")
 
-ggsave(paste0(figures_path, "fig_5.png"), fig_5, width = 129, height = 180, units = "mm")
+ggsave(paste0(figures_path, "fig_3.png"), fig_3, width = 129, height = 180, units = "mm")
 
 #slide 16-21
 slide_16 <- read_excel(rawdata_path, sheet = "slide_16_21") %>% 
@@ -219,13 +220,12 @@ slide_16_fig <- slide_16 %>%
   ggplot(aes(a, flux, shape = `Lake influence`))+
   geom_hline(yintercept = 0, linetype=3)+
   geom_point()+
+  geom_smooth(inherit.aes = FALSE, aes(a, flux), method = "loess", color="coral")+
   scale_x_log10()+
   scale_shape_manual(values = c("Lake" = 19, "No lake" = 1))+
   ylab(expression("CO"[2]~"flux (mg C m"^{-2}~h^{-1}*")"))+
-  xlab(expression(log[10]*"(wetted area [m"^{2}*"])"))+
+  xlab(expression("Wetted area (m"^{2}*")"))+
   theme(legend.position = c(0.85, 0.85))
-
-ggsave(paste0(figures_path, "fig_6.png"), slide_16_fig, width = 129, height = 100, units = "mm")
 
 #slide 20
 wtr_qr_10 <- rq(flux~wtr, tau = 0.1, data = slide_16)
@@ -254,6 +254,10 @@ slide_16_wtr_fig <- slide_16 %>%
   ylab(expression("CO"[2]~"flux (mg C m"^{-2}~h^{-1}*")"))+
   xlab("Water temperature (°C)")
 
+fig_6 <- slide_16_fig+slide_16_wtr_fig+plot_layout(guides = "collect", ncol=1)+plot_annotation(tag_levels = "A")
+
+ggsave(paste0(figures_path, "fig_6.png"), fig_6, width = 129, height = 180, units = "mm")
+
 #slide 21
 co2_qr_10 <- rq(flux~co2_morning, tau = 0.1, data = slide_16)
 summary(co2_qr_10, "boot")
@@ -281,6 +285,6 @@ slide_16_co2_fig <- slide_16 %>%
   ylab(expression("CO"[2]~"flux (mg C m"^{-2}~h^{-1}*")"))+
   xlab(expression("CO"[2]~"("*mu*mol~l^{-1}*")"))
 
-fig_7 <- slide_16_wtr_fig+slide_16_co2_fig+plot_layout(guides = "collect", ncol=1)+plot_annotation(tag_levels = "A")
+ggsave(paste0(figures_path, "fig_s1.png"), slide_16_co2_fig, width = 129, height = 100, units = "mm")
 
-ggsave(paste0(figures_path, "fig_7.png"), fig_7, width = 129, height = 180, units = "mm")
+#table ?? statistics
