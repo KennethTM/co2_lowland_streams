@@ -138,24 +138,52 @@ scatter3D(x, y, z, pch = 19, cex = 1, colvar = NULL, col="black",
 dev.off()
 
 #slide 10
+inset_sites <- st_read(paste0(getwd(), "/data/arresø_network.kml")) %>% 
+  add_column(name = as.character(c(6, 5, 3, 4, 2, 1)))
+inset_sites_bbox <- c("xmin" = 12.025, "xmax" = 12.275, 
+                      "ymin" = 55.93, "ymax" = 56.01)
+
+# q <- opq(bbox = c(inset_sites_bbox[["xmin"]],inset_sites_bbox[["ymin"]],
+#                   inset_sites_bbox[["xmax"]], inset_sites_bbox[["ymax"]])) %>%
+#   add_osm_feature("water") %>%
+#   add_osm_feature("waterway")
+# 
+# q_sf <- osmdata_sf(q)
+# saveRDS(q_sf, paste0(getwd(), "/data/arresø_network_osm.rds"))
+
+q_sf <- readRDS(paste0(getwd(), "/data/arresø_network_osm.rds"))
+
+fig_5_inset_map <- ggplot()+
+  geom_sf(data = q_sf$osm_lines, col = "lightblue")+
+  geom_sf(data = filter(q_sf$osm_polygons, osm_id != "4761877"), fill = "deepskyblue3", col = "deepskyblue3")+
+  geom_sf(data = filter(q_sf$osm_multipolygons, osm_id != "4547983"), fill = "deepskyblue3", col = "deepskyblue3")+
+  geom_sf_text(data = inset_sites, aes(label = name))+
+  annotate("text", x=12.11, y=55.96, label="Lake Arre")+
+  xlab(NULL)+
+  ylab(NULL)+
+  annotation_scale(location="br")+
+  theme(axis.text = element_blank(), axis.ticks = element_blank())
+
 slide_10 <- read_excel(rawdata_path, sheet = "slide_10") %>% 
   na.omit() %>% 
   mutate(co2 = 10^log_co2,
          date = ymd("1995-01-01")+time) %>% 
   rename(Site = site) %>% 
-  filter(Site != "Pølebro 2")
+  filter(Site != "Pølebro 2") %>% 
+  left_join(st_drop_geometry(inset_sites), by = c("Site" = "Name"))
 
 fig_5 <- slide_10 %>% 
-  ggplot(aes(date, co2, col=Site))+
+  ggplot(aes(date, co2, col=name))+
   geom_point(size=0.7)+
   geom_line()+
   scale_y_log10()+
   ylab(expression(CO[2]~"("*mu*mol~L^{-1}*")"))+
   scale_x_date(date_breaks = "3 month", date_labels = "%b")+
   xlab("Month")+
-  scale_color_brewer(palette = "Dark2")
+  scale_color_brewer(palette = "Dark2", name = "Site")
 
-ggsave(paste0(figures_path, "fig_5.png"), fig_5, width = 129, height = 84, units = "mm")
+ggsave(paste0(figures_path, "fig_5_raw.svg"), fig_5, width = 129, height = 84, units = "mm")
+ggsave(paste0(figures_path, "fig_5_inset_map.svg"), fig_5_inset_map, width = 129, height = 84, units = "mm")
 
 #slide 11
 slide_11 <- read_excel(rawdata_path, sheet = "slide_11") %>% 
