@@ -94,12 +94,12 @@ xy <- expand.grid( x = x.pred, y = y.pred)
 z.pred <- matrix(predict(fit, newdata = xy), nrow = grid.lines, ncol = grid.lines)
 fitpoints <- predict(fit)
 
-png(paste0(figures_path, "fig_4.png"), width = 129, height = 129, units = "mm", res = 300)
+svg(paste0(figures_path, "fig_4_raw.svg"), width = 5.07874, height = 5.07874)
 scatter3D(x, y, z, pch = 19, cex = 1, colvar = NULL, col="black",
-          theta = 120, phi = 20, bty="b", ticktype="detailed", #ticktype="simple"
+          theta = 120, phi = 20, bty="b", ticktype="detailed",
           xlab = "log10(Chl. a)", ylab = "Water temp.", zlab = "log10(CO2)",
           surf = list(x = x.pred, y = y.pred, z = z.pred, facets = TRUE, fit = fitpoints,
-                      col=ramp.col(col = c("seagreen1", "dodgerblue3"), n = 300, alpha=0.5))) #, border="black", 
+                      col=ramp.col(col = c("seagreen1", "dodgerblue3"), n = 300, alpha=0.5)))
 dev.off()
 
 #Figure 5
@@ -142,7 +142,7 @@ fig_5 <- slide_10 %>%
   geom_point(size=0.7)+
   geom_line()+
   scale_y_log10()+
-  ylab(expression(CO[2]~"("*mu*mol~L^{-1}*")"))+
+  ylab(expression(CO[2]~"("*mu*M*")"))+
   scale_x_date(date_breaks = "3 month", date_labels = "%b")+
   xlab("Month")+
   scale_color_brewer(palette = "Dark2", name = "Site")
