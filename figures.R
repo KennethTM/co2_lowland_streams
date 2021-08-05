@@ -2,7 +2,7 @@ source("libs_and_funcs.R")
 
 #Figures
 
-#slide 5
+#Figure 2A
 slide_5 <- read_excel(rawdata_path, sheet = "slide_5") %>% 
   na.omit() %>% 
   mutate(a = 10^log_a,
@@ -33,10 +33,10 @@ slide_5_fig <- slide_5 %>%
   annotate("text", x=1.5, y=3, label = qr_eqn(qr_10, "0.1"), parse=TRUE)+
   annotate("text", x=1.5, y=2.8, label = qr_eqn(qr_50, "0.5"), parse=TRUE)+
   annotate("text", x=1.5, y=2.6, label = qr_eqn(qr_90, "0.9"), parse=TRUE)+
-  ylab(expression(CO[2]~"("*mu*mol~L^{-1}*")"))+
+  ylab(expression(CO[2]~"("*mu*M*")"))+
   xlab(expression(Wetted~area~"(m"^{2}*")"))
 
-#slide 6
+#Figure 2B
 slide_6 <- read_excel(rawdata_path, sheet = "slide_6") %>% 
   na.omit() %>% 
   mutate(co2_morning = 10^log_co2_morning,
@@ -52,54 +52,19 @@ slide_6_fig <- slide_6 %>%
   scale_x_log10(limits=c(1, 1000))+
   scale_y_log10(limits=c(1, 1000))+
   annotate("text", x=10, y=1000, label = lm_eqn(slide_6_lm), parse=TRUE)+
-  ylab(expression("Afternoon"~CO[2]~"("*mu*mol~L^{-1}*")"))+
-  xlab(expression("Morning"~CO[2]~"("*mu*mol~L^{-1}*")"))
+  ylab(expression("Afternoon"~CO[2]~"("*mu*M*")"))+
+  xlab(expression("Morning"~CO[2]~"("*mu*M*")"))
 
 fig_2 <- slide_5_fig/slide_6_fig+plot_annotation(tag_levels = "A")
 
 ggsave(paste0(figures_path, "fig_2.png"), fig_2, width = 129, height = 180, units = "mm")
 
-#slide 7, 8, 9
+#Figure 4
 slide_7_8 <- read_excel(rawdata_path, sheet = "slide_7_8") %>% 
   na.omit() %>% 
   mutate(co2_morning = 10^log_co2_morning,
          co2_evening = 10^log_co2_evening,
          chl = 10^log_chl)
-
-# slide_7 <- bind_rows(data.frame(wtr = slide_7_8$wtr_morning, co2 = slide_7_8$co2_morning, time = "morning"),
-#                      data.frame(wtr = slide_7_8$wtr_evening, co2 = slide_7_8$co2_evening, time = "evening"))
-# 
-# slide_7 %>% 
-#   ggplot(aes(wtr, co2, col=time)) +
-#   geom_point()+
-#   geom_smooth(method = "lm")+
-#   scale_y_log10()+
-#   ylab(expression(log[10]*"(CO"[2]~"["*mu*mol~L^{-1}*"])"))+
-#   xlab("Water temperature (°C)")+
-#   scale_color_viridis_d()
-# 
-# slide_8 <- slide_7_8 %>% 
-#   select(co2_morning, co2_evening, chl) %>% 
-#   gather(var_time, co2, -chl) %>% 
-#   separate(var_time, c("var", "time"), "_")
-# 
-# slide_8 %>% 
-#   ggplot(aes(chl, co2, col=time))+
-#   geom_point()+
-#   geom_smooth(method = "lm")+
-#   scale_y_log10()+
-#   scale_x_log10()+
-#   ylab(expression(log[10]*"(CO"[2]~"["*mu*mol~l^{-1}*"])"))+
-#   xlab(expression(log[10]*"(Chl. a [mg"~L^{-1}*"])"))+
-#   scale_color_viridis_d()
-# 
-# #slide 9
-# slide_7_8 %>% 
-#   ggplot(aes(wtr_morning, chl)) +
-#   geom_point()+
-#   scale_y_log10()+
-#   ylab(expression(log[10]*"(Chl. a [mg"~L^{-1}*"])"))+
-#   xlab("Water temperature (°C)")
 
 slide_7_8_lm <- bind_rows(data.frame(wtr = slide_7_8$wtr_morning, log_co2 = slide_7_8$log_co2_morning, log_chl = slide_7_8$log_chl, time = "morning"),
                      data.frame(wtr = slide_7_8$wtr_evening, log_co2 = slide_7_8$log_co2_evening, log_chl = slide_7_8$log_chl, time = "evening"))
@@ -137,8 +102,8 @@ scatter3D(x, y, z, pch = 19, cex = 1, colvar = NULL, col="black",
                       col=ramp.col(col = c("seagreen1", "dodgerblue3"), n = 300, alpha=0.5))) #, border="black", 
 dev.off()
 
-#slide 10
-inset_sites <- st_read(paste0(getwd(), "/data/arresø_network.kml")) %>% 
+#Figure 5
+inset_sites <- st_read(paste0(getwd(), "/data/lake_arre_network.kml")) %>% 
   add_column(name = as.character(c(6, 5, 3, 4, 2, 1)))
 inset_sites_bbox <- c("xmin" = 12.025, "xmax" = 12.275, 
                       "ymin" = 55.93, "ymax" = 56.01)
@@ -151,7 +116,7 @@ inset_sites_bbox <- c("xmin" = 12.025, "xmax" = 12.275,
 # q_sf <- osmdata_sf(q)
 # saveRDS(q_sf, paste0(getwd(), "/data/arresø_network_osm.rds"))
 
-q_sf <- readRDS(paste0(getwd(), "/data/arresø_network_osm.rds"))
+q_sf <- readRDS(paste0(getwd(), "/data/lake_arre_network_osm.rds"))
 
 fig_5_inset_map <- ggplot()+
   geom_sf(data = q_sf$osm_lines, col = "lightblue")+
@@ -185,7 +150,7 @@ fig_5 <- slide_10 %>%
 ggsave(paste0(figures_path, "fig_5_raw.svg"), fig_5, width = 129, height = 84, units = "mm")
 ggsave(paste0(figures_path, "fig_5_inset_map.svg"), fig_5_inset_map, width = 129, height = 84, units = "mm")
 
-#slide 11
+#Figure 3A
 slide_11 <- read_excel(rawdata_path, sheet = "slide_11") %>% 
   na.omit() %>% 
   mutate(`Lake influence` = factor(ifelse(lake == 0, "No lake", "Lake")))
@@ -197,10 +162,10 @@ slide_11_fig <- slide_11 %>%
   scale_x_continuous(limits=c(1, 400))+
   scale_y_continuous(limits=c(1, 400))+
   scale_shape_manual(values = c("Lake" = 19, "No lake" = 1))+
-  ylab(expression("Sep-May CO"[2]~"("*mu*mol~L^{-1}*")"))+
-  xlab(expression("June-Aug CO"[2]~"("*mu*mol~L^{-1}*")"))
+  ylab(expression("Sep-May CO"[2]~"("*mu*M*")"))+
+  xlab(expression("June-Aug CO"[2]~"("*mu*M*")"))
 
-#slide 13
+#Figure 3B
 slide_13 <- read_excel(rawdata_path, sheet = "slide_13") %>% 
   gather(var_time, co2, -chl, -name, -position) %>% 
   separate(var_time, c("var", "time"), "_") %>% 
@@ -222,7 +187,7 @@ slide_13_fig <- slide_13 %>%
   scale_y_log10()+
   scale_x_log10()+
   scale_shape_manual(values=c(1, 19))+
-  ylab(expression("CO"[2]~"("*mu*mol~l^{-1}*")"))+
+  ylab(expression("CO"[2]~"("*mu*M*")"))+
   xlab(expression("Chl. "*italic(a)~"(mg"~L^{-1}*")"))+
   scale_color_viridis_d()+
   annotate("text", x=50, y=100, label = lm_eqn(slide_13_lm2), parse=TRUE)
@@ -231,7 +196,7 @@ fig_3 <- slide_11_fig/slide_13_fig+plot_annotation(tag_levels = "A")
 
 ggsave(paste0(figures_path, "fig_3.png"), fig_3, width = 129, height = 180, units = "mm")
 
-#slide 16-21
+#Figure 6A
 slide_16 <- read_excel(rawdata_path, sheet = "slide_16_21") %>% 
   filter(!is.na(position)) %>% 
   mutate(log_a = log10(a),
@@ -255,7 +220,7 @@ slide_16_fig <- slide_16 %>%
   xlab(expression("Wetted area (m"^{2}*")"))+
   theme(legend.position = c(0.85, 0.85))
 
-#slide 20
+#Figure 6B
 wtr_qr_10 <- rq(flux~wtr, tau = 0.1, data = slide_16)
 summary(wtr_qr_10, "boot")
 wtr_qr_50 <- rq(flux~wtr, tau = 0.5, data = slide_16)
@@ -286,7 +251,7 @@ fig_6 <- slide_16_fig+slide_16_wtr_fig+plot_layout(guides = "collect", ncol=1)+p
 
 ggsave(paste0(figures_path, "fig_6.png"), fig_6, width = 129, height = 180, units = "mm")
 
-#slide 21
+#Figure S1
 co2_qr_10 <- rq(flux~co2_morning, tau = 0.1, data = slide_16)
 summary(co2_qr_10, "boot")
 co2_qr_50 <- rq(flux~co2_morning, tau = 0.5, data = slide_16)
@@ -311,8 +276,6 @@ slide_16_co2_fig <- slide_16 %>%
   annotate("text", x=200, y=625, label = qr_eqn(co2_qr_50, "0.5"), parse=TRUE)+
   annotate("text", x=200, y=550, label = qr_eqn(co2_qr_90, "0.9"), parse=TRUE)+
   ylab(expression("CO"[2]~"flux (mg C m"^{-2}~h^{-1}*")"))+
-  xlab(expression("CO"[2]~"("*mu*mol~l^{-1}*")"))
+  xlab(expression("CO"[2]~"("*mu*M*")"))
 
 ggsave(paste0(figures_path, "fig_s1.png"), slide_16_co2_fig, width = 129, height = 100, units = "mm")
-
-#table ?? statistics
