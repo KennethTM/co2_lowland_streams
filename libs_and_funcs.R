@@ -1,7 +1,7 @@
 #Libraries and functions
 
 library(raster);library(tidyverse);library(lubridate);library(readxl);library(patchwork);library(sf)
-library(quantreg);library(plot3D);library(osmdata);library(ggspatial)
+library(quantreg);library(plot3D);library(osmdata);library(ggspatial);library(nngeo)
 
 #Figure sizing. For most journals the figures should be 39 mm, 84 mm, 129 mm, or 174 mm wide and not higher than 234 mm.
 
@@ -35,3 +35,6 @@ qr_eqn <- function(m, tau){
                         sign = ifelse(format(unname(coef(m)[2]), digits = 2) < 0, "-", "+")))
   as.character(as.expression(eq))
 }
+
+mpi_settings <- "mpiexec -n 8 "
+taudem_path <- "/usr/local/taudem/"
