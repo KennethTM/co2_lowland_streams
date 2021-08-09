@@ -1,23 +1,43 @@
 source("libs_and_funcs.R")
 
-#Catchment delineation
+#Flowdirs
+p_raster <- paste0(getwd(), "/data/dhym_25m_breach_p.tif")
+taudem_flowdir <- paste0(mpi_settings, taudem_path, "d8flowdir ",
+                         " -p ", p_raster,
+                         " -sd8 ", paste0(getwd(), "/data/dhym_25m_breach_sd8.tif"),
+                         " -fel ", paste0(getwd(), "/data/dhym_25m_breach.tif"))
+system(taudem_flowdir)
 
-p_raster <- paste0(getwd(), "/data/Skjern_basin_cond_p.tif")
-src_raster <- paste0(getwd(), "/data/Skjern_basin_src.tif")
+#Flow accumulation weighted by stream start and end points
+taudem_acc <- paste0(mpi_settings, taudem_path, "aread8",
+                     " -p ", paste0(getwd(), "/data/dhym_25m_breach_p.tif"),
+                     " -ad8 ", paste0(getwd(), "/data/dhym_25m_breach_ad8.tif"),
+                     " -nc")
+system(taudem_acc)
+
+#Threshold stream network
+src_raster <- paste0(getwd(), "/data/dhym_25m_breach_src.tif")
+taudem_threshold <- paste0(mpi_settings, taudem_path, "threshold",
+                                " -src ", src_raster,
+                                " -ssa ", paste0(getwd(), "/data/dhym_25m_breach_ad8.tif"),
+                                " -thresh 500")
+system(taudem_threshold)
+
+#Catchment delineation
 sites_kml <- paste0(getwd(), "/data/stream_sites.kml")
 sites_sql <- paste0(getwd(), "/data/stream_sites.sqlite")
-
 raster_crs <- st_crs(raster(p_raster))
 
-st_read(sites_kml) %>% 
+stream_sites <- st_read(sites_kml) %>% 
   st_zm() %>% 
   st_transform(raster_crs) %>% 
-  select(Name) %>% 
-  st_write(sites_sql)
+  select(Name)
 
-sites_snap <- paste0(getwd(), "/data/stream_sites_snap.sqlite")
+st_write(stream_sites, sites_sql, delete_dsn = TRUE)
 
 #Snap points to stream network along flow directions
+sites_snap <- paste0(getwd(), "/data/stream_sites_snap.sqlite")
+
 taudem_snap <- paste0(taudem_path, "moveoutletstostrm",
                       " -p ", p_raster,
                       " -src ", src_raster,
@@ -25,10 +45,7 @@ taudem_snap <- paste0(taudem_path, "moveoutletstostrm",
                       " -om ", sites_snap)
 system(taudem_snap)
 
-stream_sites_snap <- st_read(sites_snap) %>% 
-  st_transform(25832)
-
-#st_write(stream_sites_snap, paste0(getwd(), "/data/stream_sites_snap_reproj.sqlite"), delete_dsn = TRUE)
+stream_sites_snap <- st_read(sites_snap)
 
 #NESTER WATERSHED DELINEATION
 #Delineate watershed draining to stream outlets
@@ -61,15 +78,14 @@ gw_clean <- st_read(gw_vect) %>%
   st_join(stream_sites_snap) %>% 
   mutate(nested_area = as.numeric(st_area(geom)))
 
-#st_write(gw_clean, paste0(getwd(), "/data/gw_clean.sqlite"), delete_dsn = TRUE)
+st_write(gw_clean, paste0(getwd(), "/data/gw_clean.sqlite"), delete_dsn = TRUE)
 
-#NON-NESTER WATERSHED DELINEATION
-sites_snap_raw <- st_read(sites_snap)
-for(i in 1:nrow(sites_snap_raw)){
+#NON-NESTED WATERSHED DELINEATION
+for(i in 1:nrow(stream_sites_snap)){
   
   print(paste0("Delineating stream watershed ", i))
   
-  st_write(sites_snap_raw[i, ], paste0(getwd(), "/data/watershed_tmp/outlet_", i, ".sqlite"))
+  st_write(stream_sites_snap[i, ], paste0(getwd(), "/data/watershed_tmp/outlet_", i, ".sqlite"))
   
   #Delineate watershed draining to lake boundary points
   taudem_gage <- paste0(mpi_settings, taudem_path, "gagewatershed",
@@ -88,10 +104,8 @@ for(i in 1:nrow(sites_snap_raw)){
   file.remove(paste0(getwd(), "/data/watershed_tmp/outlet_", i, ".tif"))
 }
 
-###
-
 #Load and clean all non-nested watershed files
-gw_nonnest_list <- lapply(1:nrow(sites_snap_raw), function(i){
+gw_nonnest_list <- lapply(1:nrow(stream_sites_snap), function(i){
   st_read(paste0(getwd(), "/data/watershed_tmp/gw_", i, ".sqlite")) %>% 
     st_transform(25832) %>% 
     st_make_valid() %>% 
@@ -106,27 +120,4 @@ gw_nonnest_list <- lapply(1:nrow(sites_snap_raw), function(i){
 gw_nonnest_clean <- do.call(what = sf:::rbind.sf, args = gw_nonnest_list) %>% 
   left_join(st_drop_geometry(gw_clean[, c("id", "name")]))
 
-#st_write(gw_nonnest_clean, paste0(getwd(), "/data/gw_nonnest_clean.sqlite"), delete_dsn=TRUE)
-
-#Plot
-dk_border_raw <- raster::getData("GADM", country = "DNK", level = 0, path = paste0(getwd(), "/data"))
-dk_border <- dk_border_raw %>% 
-  st_as_sf() %>% 	
-  st_crop(xmin = 8, ymin = 54.56, xmax = 14, ymax = 57.76) %>% 	
-  st_transform(25832)	
-
-xlabs <- seq(8, 12, 1)
-ylabs <- seq(54.5, 57.5, 0.5)
-
-col_pal <- RColorBrewer::brewer.pal(8, "Dark2")
-
-ggplot()+
-  geom_sf(data = dk_border, fill = NA, col = "black")+
-  geom_sf(data = gw_clean, aes(fill=factor(id, levels = id)), show.legend = FALSE, col = NA)+
-  geom_sf(data= stream_sites_snap)+
-  scale_fill_manual(values=c(rep(col_pal, 4), col_pal[1:3]))+
-  scale_x_continuous(breaks = xlabs, labels = paste0(xlabs,'°E')) +
-  scale_y_continuous(breaks = ylabs, labels = paste0(ylabs,'°N'))
-
-
-#Fix Ryå - løber ud forkert sted, 10 m raster? evt tjek i qgis
+st_write(gw_nonnest_clean, paste0(getwd(), "/data/gw_nonnest_clean.sqlite"), delete_dsn=TRUE)
