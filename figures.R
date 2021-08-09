@@ -2,6 +2,37 @@ source("libs_and_funcs.R")
 
 #Figures
 
+#Figure 1
+
+#Plot
+dk_border_raw <- raster::getData("GADM", country = "DNK", level = 0, path = paste0(getwd(), "/data"))
+dk_border <- dk_border_raw %>% 
+  st_as_sf() %>% 	
+  st_crop(xmin = 8, ymin = 54.56, xmax = 14, ymax = 57.76) %>% 	
+  st_transform(25832)
+
+gw_clean <- st_read(paste0(getwd(), "/data/gw_clean.sqlite"))
+stream_sites_snap <- st_read(paste0(getwd(), "/data/stream_sites_snap.sqlite"))
+stream_sites_snap_coords <- as.data.frame(st_coordinates(stream_sites_snap))
+stream_sites_snap_sort <- bind_cols(stream_sites_snap, stream_sites_snap_coords) %>% 
+  arrange(Y, X)
+
+xlabs <- seq(8, 12, 1)
+ylabs <- seq(54.5, 57.5, 0.5)
+
+col_pal <- RColorBrewer::brewer.pal(8, "Dark2")
+col_vec <- c(rep(col_pal, 4), col_pal[1:4])
+
+map_fig <- ggplot()+
+  geom_sf(data = dk_border, fill = NA, col = "grey")+
+  geom_sf(data = gw_clean, aes(fill=factor(id, levels = id)), show.legend = FALSE, col = NA)+
+  geom_sf(data= stream_sites_snap, size = 0.7)+
+  scale_fill_manual(values=col_vec)+
+  scale_x_continuous(breaks = xlabs, labels = paste0(xlabs,'°E')) +
+  scale_y_continuous(breaks = ylabs, labels = paste0(ylabs,'°N'))
+
+ggsave(paste0(figures_path, "fig_1.png"), map_fig, width = 129, height = 150, units = "mm")
+
 #Figure 2A
 slide_5 <- read_excel(rawdata_path, sheet = "slide_5") %>% 
   na.omit() %>% 
