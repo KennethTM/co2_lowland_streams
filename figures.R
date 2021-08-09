@@ -29,7 +29,9 @@ map_fig <- ggplot()+
   geom_sf(data= stream_sites_snap, size = 0.7)+
   scale_fill_manual(values=col_vec)+
   scale_x_continuous(breaks = xlabs, labels = paste0(xlabs,'°E')) +
-  scale_y_continuous(breaks = ylabs, labels = paste0(ylabs,'°N'))
+  scale_y_continuous(breaks = ylabs, labels = paste0(ylabs,'°N'))+
+  xlab("Latitude")+
+  ylab("Longitude")
 
 ggsave(paste0(figures_path, "fig_1.png"), map_fig, width = 129, height = 150, units = "mm")
 
