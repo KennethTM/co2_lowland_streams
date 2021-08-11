@@ -47,7 +47,7 @@ system(taudem_snap)
 
 stream_sites_snap <- st_read(sites_snap)
 
-#NESTER WATERSHED DELINEATION
+#NESTED WATERSHED DELINEATION
 #Delineate watershed draining to stream outlets
 gw_raster <- paste0(getwd(), "/data/watersheds.tif")
 

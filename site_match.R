@@ -17,9 +17,10 @@ stream_sites_snap %>%
   select(-dist_moved) %>% 
   write_csv(paste0(getwd(), "/data/stream_sites_snap.csv"))
 
-#Add column matching "name" and "site_id columns
+#Add column matching "name" and "site_id" columns to stream_sites_snap.csv
 stream_sites_site_id <- read_excel(paste0(getwd(), "/data/stream_sites_snap_site_id.xlsx"))
 
+#Join to data and write to file
 sites_discharge <- stream_sites_site_id %>% 
   left_join(discharge_merge)
 
