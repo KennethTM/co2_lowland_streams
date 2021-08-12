@@ -52,7 +52,7 @@ slide_5_fig <- slide_5 %>%
   geom_point(shape=1)+
   geom_line(data=slide_5_pred, aes(col=Quantile), size=1.2)+
   scale_color_viridis_d()+
-  scale_y_continuous(limits = c(0, 3), breaks = c(0, 1, 2, 3), labels = c(1, 10, 100, 1000))+
+  scale_y_continuous(limits = c(-0.2, 3), breaks = c(0, 1, 2, 3), labels = c(1, 10, 100, 1000))+
   scale_x_continuous(breaks = c(-1, 0, 1, 2), labels = c(0.1, 1, 10, 100))+
   annotate("text", x=1.5, y=3, label = qr_eqn(qr_10, "0.1"), parse=TRUE)+
   annotate("text", x=1.5, y=2.8, label = qr_eqn(qr_50, "0.5"), parse=TRUE)+
@@ -238,24 +238,24 @@ table_1_data %>%
 #sammenhæng mellem co2 og discharge?
 discharge <- read_csv(paste0(getwd(), "/data/sites_discharge.csv"))
 sites_co2 <- read_tsv(paste0(getwd(), "/data/co2_sites_kaj.txt"))
+catchment <- st_read(paste0(getwd(), "/data/gw_nonnest_clean.sqlite")) 
+
+catchment_df <- catchment %>% 
+  st_drop_geometry() %>% 
+  select(name, total_area, mean_elev, mean_slope)
 
 merge <- discharge %>% 
-  left_join(sites_co2)
+  left_join(sites_co2) %>% 
+  left_join(catchment_df)
 
-summary(lm(log_co2~index*alkalinity, data = merge))
+#Table 3
+merge %>% 
+  mutate(catchment_area = total_area*10^-6) %>%
+  select(name, co2_flux, co2_flux_weight, index, alkalinity, catchment_area) %>% 
+  write_csv(paste0(figures_path, "table_3.csv"))
 
-discharge %>% 
-  left_join(sites_co2) %>%
-  ggplot(aes(index, log_co2, col = alkalinity))+
-  geom_text(aes(label = name))+
-  #geom_point()+
-  scale_color_viridis_c()#+
-  #geom_smooth(method="lm")
-
-discharge %>% 
-  left_join(sites_co2) %>%
-  ggplot(aes(index, co2_flux, col = alkalinity))+
-  geom_text(aes(label = name))+
-  #geom_point()+
-  scale_color_viridis_c()#+
-  #geom_smooth(method="lm")
+tmp_data <- merge %>% 
+  select(co2_flux, index, total_area) %>% 
+  na.omit() 
+ 
+summary(lm(co2_flux~index+log10(total_area), data = tmp_data))

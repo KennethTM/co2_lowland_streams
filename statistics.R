@@ -67,6 +67,7 @@ drop1(slide_7_8_lm4, test = "F")
 slide_7_8_lm5 <- update(slide_7_8_lm4, . ~ . -time)
 drop1(slide_7_8_lm5, test = "F")
 
+summary(slide_7_8_lm5)
 
 #Figure 6A
 slide_16 <- read_excel(rawdata_path, sheet = "slide_16_21") %>% 
