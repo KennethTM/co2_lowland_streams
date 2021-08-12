@@ -6,12 +6,14 @@ source("statistics.R")
 #Figure 1
 
 #Plot
-dk_border_raw <- raster::getData("GADM", country = "DNK", level = 0, path = paste0(getwd(), "/data"))
-dk_border <- dk_border_raw %>% 
-  st_as_sf() %>% 	
-  st_crop(xmin = 8, ymin = 54.56, xmax = 14, ymax = 57.76) %>% 	
-  st_transform(25832)
+# dk_border_raw <- raster::getData("GADM", country = "DNK", level = 0, path = paste0(getwd(), "/data"))
+# dk_border <- dk_border_raw %>% 
+#   st_as_sf() %>% 	
+#   st_crop(xmin = 8, ymin = 54.56, xmax = 14, ymax = 57.76) %>% 	
+#   st_transform(25832) %>% 
+#   st_write(paste0(getwd(), "/data/dk_border.sqlite"))
 
+dk_border <- st_read(paste0(getwd(), "/data/dk_border.sqlite"))
 gw_clean <- st_read(paste0(getwd(), "/data/gw_clean.sqlite"))
 stream_sites_snap <- st_read(paste0(getwd(), "/data/stream_sites_snap.sqlite"))
 stream_sites_snap_coords <- as.data.frame(st_coordinates(stream_sites_snap))
@@ -21,7 +23,7 @@ stream_sites_snap_sort <- bind_cols(stream_sites_snap, stream_sites_snap_coords)
 xlabs <- seq(8, 12, 1)
 ylabs <- seq(54.5, 57.5, 0.5)
 
-col_pal <- RColorBrewer::brewer.pal(8, "Dark2")
+col_pal <- brewer.pal(8, "Dark2")
 col_vec <- c(rep(col_pal, 4), col_pal[1:4])
 
 map_fig <- ggplot()+
@@ -166,7 +168,7 @@ slide_16_fig <- slide_16 %>%
   ggplot(aes(a, flux, shape = `Lake influence`))+
   geom_hline(yintercept = 0, linetype=3)+
   geom_point()+
-  geom_smooth(inherit.aes = FALSE, aes(a, flux), method = "loess", color="coral")+
+  geom_smooth(inherit.aes = FALSE, aes(a, flux), method = "loess", color="black")+
   scale_x_log10()+
   scale_shape_manual(values = c("Lake" = 19, "No lake" = 1))+
   ylab(expression("CO"[2]~"flux (mg C m"^{-2}~h^{-1}*")"))+
@@ -220,9 +222,12 @@ slide_16_co2_fig <- slide_16 %>%
 ggsave(paste0(figures_path, "fig_s1.png"), slide_16_co2_fig, width = 129, height = 100, units = "mm")
 
 #Table 1
-table_1 %>% 
-  mutate(Slope = paste0(round(trend, 2), " [", round(lower.CL, 2), ",", round(upper.CL, 2), "]"),
-         `P-value` = format.pval(p.value, eps = .001, digits = 1)) %>% 
+table_1_data %>% 
+  mutate(co2 = 10^log_co2) %>% 
+  group_by(name) %>% 
+  summarise(n = n(), co2_mean = mean(co2), 
+            co2_first = co2[which.min(location)], 
+            co2_last = co2[which.max(location)]) %>% 
   write_csv(paste0(figures_path, "table_1.csv"))
 
 

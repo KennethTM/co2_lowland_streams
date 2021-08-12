@@ -2,8 +2,8 @@
 
 library(raster);library(tidyverse);library(lubridate);library(readxl);
 library(patchwork);library(sf);library(quantreg);library(plot3D);
-library(osmdata);library(ggspatial);library(nngeo)
-#library(emmeans)
+library(osmdata);library(ggspatial);library(nngeo);library(gdalUtils)
+library(exactextractr);library(RColorBrewer)
 
 #Figure sizing. For most journals the figures should be 39 mm, 84 mm, 129 mm, or 174 mm wide and not higher than 234 mm.
 

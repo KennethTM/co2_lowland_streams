@@ -102,25 +102,11 @@ table_1_data <- read_excel(rawdata_path, sheet = "table_1") %>%
   mutate(site = factor(name)) %>% 
   filter(lakes == 0)
 
-table_1_data_n <- table_1_data %>% 
-  group_by(site) %>% 
-  summarise(n = n())
-
 #Test if the response of log_co2 as a function of downstream location is the same for all sites
 table_1_lm0 <- lm(log_co2~location + site, data = table_1_data)
 table_1_lm1 <- lm(log_co2~location * site, data = table_1_data)
 
-#Interaction is significant, different response for streams
+#Interaction is not significant
 anova(table_1_lm0, table_1_lm1)
-
+anova(table_1_lm0)
 summary(table_1_lm0)
-
-# table_1_lm1_em <- emtrends(table_1_lm1, ~site, var = "location")
-# table_1_lm1_em_test <- test(table_1_lm1_em)
-# 
-# table_1 <- table_1_lm1_em %>% 
-#   as.data.frame() %>% 
-#   select(site, trend = location.trend, lower.CL, upper.CL) %>% 
-#   bind_cols(p.value = table_1_lm1_em_test$p.value) %>% 
-#   left_join(table_1_data_n)
-

@@ -1,26 +1,42 @@
 source("libs_and_funcs.R")
 
+#Crop DEM
+gdalwarp(srcfile = paste0(getwd(), "/data/dhym_10m.tif"),
+         dstfile = paste0(getwd(), "/data/dhym_10m_crop.tif"),
+         cutline = paste0(getwd(), "/data/dk_border.sqlite"),
+         crop_to_cutline = TRUE,
+         co = "COMPRESS=LZW")
+
+#Compute DEM slope
+gdaldem(mode = "slope",
+        input_dem = paste0(getwd(), "/data/dhym_10m_crop.tif"),
+        output = paste0(getwd(), "/data/dhym_10m_slope.tif"),
+        p = TRUE,
+        co = "COMPRESS=LZW")
+
+#Preprocess DEM using using RichDEM Python library ("dem_preproc.py" script)
+
 #Flowdirs
-p_raster <- paste0(getwd(), "/data/dhym_25m_breach_p.tif")
+p_raster <- paste0(getwd(), "/data/dhym_10m_breach_p.tif")
 taudem_flowdir <- paste0(mpi_settings, taudem_path, "d8flowdir ",
                          " -p ", p_raster,
-                         " -sd8 ", paste0(getwd(), "/data/dhym_25m_breach_sd8.tif"),
-                         " -fel ", paste0(getwd(), "/data/dhym_25m_breach.tif"))
+                         " -sd8 ", paste0(getwd(), "/data/dhym_10m_breach_sd8.tif"),
+                         " -fel ", paste0(getwd(), "/data/dhym_10m_crop_breach.tif"))
 system(taudem_flowdir)
 
 #Flow accumulation weighted by stream start and end points
 taudem_acc <- paste0(mpi_settings, taudem_path, "aread8",
-                     " -p ", paste0(getwd(), "/data/dhym_25m_breach_p.tif"),
-                     " -ad8 ", paste0(getwd(), "/data/dhym_25m_breach_ad8.tif"),
+                     " -p ", paste0(getwd(), "/data/dhym_10m_breach_p.tif"),
+                     " -ad8 ", paste0(getwd(), "/data/dhym_10m_breach_ad8.tif"),
                      " -nc")
 system(taudem_acc)
 
 #Threshold stream network
-src_raster <- paste0(getwd(), "/data/dhym_25m_breach_src.tif")
+src_raster <- paste0(getwd(), "/data/dhym_10m_breach_src.tif")
 taudem_threshold <- paste0(mpi_settings, taudem_path, "threshold",
                                 " -src ", src_raster,
-                                " -ssa ", paste0(getwd(), "/data/dhym_25m_breach_ad8.tif"),
-                                " -thresh 500")
+                                " -ssa ", paste0(getwd(), "/data/dhym_10m_breach_ad8.tif"),
+                                " -thresh 4000")
 system(taudem_threshold)
 
 #Catchment delineation
@@ -78,6 +94,9 @@ gw_clean <- st_read(gw_vect) %>%
   st_join(stream_sites_snap) %>% 
   mutate(nested_area = as.numeric(st_area(geom)))
 
+#Calculate total non-overlapping area covered by catchments
+sum(gw_clean$nested_area) #6154159200 m2
+
 st_write(gw_clean, paste0(getwd(), "/data/gw_clean.sqlite"), delete_dsn = TRUE)
 
 #NON-NESTED WATERSHED DELINEATION
@@ -117,7 +136,14 @@ gw_nonnest_list <- lapply(1:nrow(stream_sites_snap), function(i){
            total_area = as.numeric(st_area(geom)))
 })
 
-gw_nonnest_clean <- do.call(what = sf:::rbind.sf, args = gw_nonnest_list) %>% 
+gw_nonnest_clean <- do.call(what = rbind, args = gw_nonnest_list) %>% 
   left_join(st_drop_geometry(gw_clean[, c("id", "name")]))
 
-st_write(gw_nonnest_clean, paste0(getwd(), "/data/gw_nonnest_clean.sqlite"), delete_dsn=TRUE)
+#Extract mean slope and elevation for each catchment
+dem_stack <- stack(c(paste0(getwd(), "/data/dhym_10m_crop.tif"),
+                     paste0(getwd(), "/data/dhym_10m_slope.tif")))
+
+catchment_attr <- exact_extract(dem_stack, gw_nonnest_clean, "mean")
+names(catchment_attr) <- c("mean_elev", "mean_slope")
+
+st_write(bind_cols(gw_nonnest_clean, catchment_attr) , paste0(getwd(), "/data/gw_nonnest_clean.sqlite"), delete_dsn=TRUE)
