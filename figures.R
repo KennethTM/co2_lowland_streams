@@ -30,9 +30,6 @@ map_fig <- ggplot()+
   xlab("Latitude")+
   ylab("Longitude")
 
-#Save as .svg and match in inkscape
-ggsave(paste0(figures_path, "fig_1_main.svg"), map_fig, width = 129, height = 150, units = "mm")
-
 #Mølleå subplot
 fig_1_data <- read_excel(rawdata_path, sheet = "fig_1")
 
@@ -44,18 +41,15 @@ mølleå <- st_read(paste0(getwd(), "/data/mølleå.kml")) %>%
 mølleå_osm <- readRDS(paste0(getwd(), "/data/mølleå_osm.rds"))
 
 mølleå_subplot <- ggplot()+
-  geom_sf(data = mølleå_osm$osm_lines, col = "lightblue")+
+  geom_sf(data = mølleå_osm$osm_lines, col = "lightblue", size=1)+
   geom_sf(data = mølleå_osm$osm_polygons, fill = "deepskyblue3", col = "deepskyblue3")+
   geom_sf(data = mølleå_osm$osm_multipolygons, fill = "deepskyblue3", col = "deepskyblue3")+
-  geom_sf(data = mølleå, aes(size = co2), col="coral")+
+  geom_sf(data = mølleå)+
+  geom_sf_text(data = mølleå, aes(label = format(co2, digits=0)), nudge_y = 0.0025)+
   xlab(NULL)+
   ylab(NULL)+
   annotation_scale(location="br")+
-  scale_size(limits = c(0, 435))+
-  guides(size=guide_legend(title=expression("CO"[2]~"("*mu*M*")")))+
   theme(axis.text = element_blank(), axis.ticks = element_blank())
-
-ggsave(paste0(figures_path, "fig_1_mølleå.svg"), mølleå_subplot, width = 129, height = 150, units = "mm")
 
 #Upper gudenå subplot
 upper_gudenå <- st_read(paste0(getwd(), "/data/upper_gudenå.kml")) %>% 
@@ -64,19 +58,22 @@ upper_gudenå <- st_read(paste0(getwd(), "/data/upper_gudenå.kml")) %>%
   left_join(fig_1_data)
 
 upper_gudenå_osm <- readRDS(paste0(getwd(), "/data/upper_gudenå_osm.rds"))
+osm_lines_crop <- st_crop(upper_gudenå_osm$osm_lines, st_buffer(upper_gudenå, 0.02))
 
 upper_gudenå_subplot <- ggplot()+
-  geom_sf(data = st_crop(upper_gudenå_osm$osm_lines, st_buffer(upper_gudenå, 0.02)), col = "lightblue")+
+  geom_sf(data = osm_lines_crop, col = "lightblue", size = 1)+
   geom_sf(data = upper_gudenå_osm$osm_polygons, fill = "deepskyblue3", col = "deepskyblue3")+
   geom_sf(data = upper_gudenå_osm$osm_multipolygons, fill = "deepskyblue3", col = "deepskyblue3")+
-  geom_sf(data = upper_gudenå, aes(size = co2), col="coral")+
+  geom_sf(data = upper_gudenå)+
+  geom_sf_text(data = upper_gudenå, aes(label = format(co2, digits=0)), nudge_y = 0.004)+
   xlab(NULL)+
   ylab(NULL)+
   annotation_scale(location="br")+
-  scale_size(limits = c(0, 435))+
   theme(axis.text = element_blank(), axis.ticks = element_blank())
 
-ggsave(paste0(figures_path, "fig_1_upper_gudenå.svg"), upper_gudenå_subplot, width = 129, height = 150, units = "mm")
+#Save as .pdf and edit in inkscape
+fig_1_raw <- map_fig+upper_gudenå_subplot+mølleå_subplot+plot_layout(ncol=1)
+ggsave(paste0(figures_path, "fig_1_raw.pdf"), fig_1_raw, width = 174, height = 234, units = "mm")
 
 #Figure 2A
 slide_5_pred <- data.frame(log_a = seq(-1.1, 2.1, 0.1)) %>% 
@@ -280,32 +277,8 @@ table_1_data %>%
             co2_last = co2[which.max(location)]) %>% 
   write_csv(paste0(figures_path, "table_1.csv"))
 
-
-
-
-
-
-#sammenhæng mellem co2 og discharge?
-discharge <- read_csv(paste0(getwd(), "/data/sites_discharge.csv"))
-sites_co2 <- read_tsv(paste0(getwd(), "/data/co2_sites_kaj.txt"))
-catchment <- st_read(paste0(getwd(), "/data/gw_nonnest_clean.sqlite")) 
-
-catchment_df <- catchment %>% 
-  st_drop_geometry() %>% 
-  select(name, total_area, mean_elev, mean_slope)
-
-merge <- discharge %>% 
-  left_join(sites_co2) %>% 
-  left_join(catchment_df)
-
 #Table 3
 merge %>% 
   mutate(catchment_area = total_area*10^-6) %>%
-  select(name, co2_flux, co2_flux_weight, index, alkalinity, catchment_area) %>% 
+  select(name, co2_flux, co2_flux_weight, index, alkalinity, catchment_area) %>%
   write_csv(paste0(figures_path, "table_3.csv"))
-
-tmp_data <- merge %>% 
-  select(co2_flux, index, total_area) %>% 
-  na.omit() 
- 
-summary(lm(co2_flux~index+log10(total_area), data = tmp_data))

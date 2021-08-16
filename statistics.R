@@ -111,3 +111,23 @@ table_1_lm1 <- lm(log_co2~location * site, data = table_1_data)
 anova(table_1_lm0, table_1_lm1)
 anova(table_1_lm0)
 summary(table_1_lm0)
+
+#Table 3
+discharge <- read_csv(paste0(getwd(), "/data/sites_discharge.csv"))
+sites_co2 <- read_tsv(paste0(getwd(), "/data/co2_sites_kaj.txt"))
+catchment <- st_read(paste0(getwd(), "/data/gw_nonnest_clean.sqlite")) 
+
+catchment_df <- catchment %>% 
+  st_drop_geometry() %>% 
+  select(name, total_area, mean_elev, mean_slope)
+
+merge <- discharge %>% 
+  left_join(sites_co2) %>% 
+  left_join(catchment_df)
+
+#Relationship between co2 flux and index/catch area
+table_3_mod <- merge %>% 
+  select(co2_flux, index, total_area) %>% 
+  na.omit() 
+
+summary(lm(co2_flux~index+log10(total_area), data = table_3_mod))
