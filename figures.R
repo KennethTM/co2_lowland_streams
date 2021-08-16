@@ -96,7 +96,7 @@ slide_13_fig <- slide_13 %>%
   scale_x_log10()+
   scale_shape_manual(values=c(1, 19))+
   ylab(expression("CO"[2]~"("*mu*M*")"))+
-  xlab(expression("Chl. "*italic(a)~"(mg"~L^{-1}*")"))+
+  xlab(expression("Chl. "*italic(a)~"("*mu*g~L^{-1}*")"))+
   scale_color_viridis_d()+
   annotate("text", x=50, y=100, label = lm_eqn(slide_13_lm2), parse=TRUE)
 
@@ -164,12 +164,18 @@ ggsave(paste0(figures_path, "fig_5_raw.svg"), fig_5, width = 129, height = 84, u
 ggsave(paste0(figures_path, "fig_5_inset_map.svg"), fig_5_inset_map, width = 129, height = 84, units = "mm")
 
 #Figure 6A
+slide_16_broken_axis <- slide_16 %>% 
+  filter(flux > 300)
+
 slide_16_fig <- slide_16 %>% 
+  filter(flux < 300) %>% 
   ggplot(aes(a, flux, shape = `Lake influence`))+
   geom_hline(yintercept = 0, linetype=3)+
   geom_point()+
   geom_smooth(inherit.aes = FALSE, aes(a, flux), method = "loess", color="black")+
   scale_x_log10()+
+  geom_point(data = slide_16_broken_axis, aes(a, 300), shape=1)+
+  geom_text(data = slide_16_broken_axis, aes(a, 300, label=format(flux, digits = 0)), nudge_x = 0.2, size =3)+
   scale_shape_manual(values = c("Lake" = 19, "No lake" = 1))+
   ylab(expression("CO"[2]~"flux (mg C m"^{-2}~h^{-1}*")"))+
   xlab(expression("Wetted area (m"^{2}*")"))+
@@ -185,13 +191,16 @@ slide_20_pred <- data.frame(wtr = seq(8, 23, 0.1)) %>%
   mutate(Quantile = factor(as.numeric(q)/100))
 
 slide_16_wtr_fig <- slide_16 %>% 
+  filter(flux < 300) %>% 
   ggplot(aes(wtr, flux)) +
   geom_point(shape=1)+
   geom_line(data=slide_20_pred, aes(col=Quantile), size=1.2)+
   scale_color_viridis_d()+
-  annotate("text", x=19, y=500, label = qr_eqn(wtr_qr_10, "0.1"), parse=TRUE)+
-  annotate("text", x=19, y=450, label = qr_eqn(wtr_qr_50, "0.5"), parse=TRUE)+
-  annotate("text", x=19, y=400, label = qr_eqn(wtr_qr_90, "0.9"), parse=TRUE)+
+  geom_point(data = slide_16_broken_axis, aes(wtr, 300), shape=1)+
+  geom_text(data = slide_16_broken_axis, aes(wtr, 300, label=format(flux, digits = 0)), nudge_x = 1, size =3)+
+  annotate("text", x=19.5, y=260, label = qr_eqn(wtr_qr_10, "0.1"), parse=TRUE)+
+  annotate("text", x=19.5, y=230, label = qr_eqn(wtr_qr_50, "0.5"), parse=TRUE)+
+  annotate("text", x=19.5, y=200, label = qr_eqn(wtr_qr_90, "0.9"), parse=TRUE)+
   ylab(expression("CO"[2]~"flux (mg C m"^{-2}~h^{-1}*")"))+
   xlab("Water temperature (°C)")
 
@@ -213,11 +222,12 @@ slide_16_co2_fig <- slide_16 %>%
   geom_point(shape=1)+
   geom_line(data=slide_21_pred, aes(col=Quantile), size=1.2)+
   scale_color_viridis_d()+
-  annotate("text", x=200, y=700, label = qr_eqn(co2_qr_10, "0.1"), parse=TRUE)+
-  annotate("text", x=200, y=625, label = qr_eqn(co2_qr_50, "0.5"), parse=TRUE)+
-  annotate("text", x=200, y=550, label = qr_eqn(co2_qr_90, "0.9"), parse=TRUE)+
+  annotate("text", x=200, y=500, label = qr_eqn(co2_qr_10, "0.1"), parse=TRUE)+
+  annotate("text", x=200, y=450, label = qr_eqn(co2_qr_50, "0.5"), parse=TRUE)+
+  annotate("text", x=200, y=400, label = qr_eqn(co2_qr_90, "0.9"), parse=TRUE)+
   ylab(expression("CO"[2]~"flux (mg C m"^{-2}~h^{-1}*")"))+
-  xlab(expression("CO"[2]~"("*mu*M*")"))
+  xlab(expression("CO"[2]~"("*mu*M*")"))+
+  coord_cartesian(ylim = c(0, 505))
 
 ggsave(paste0(figures_path, "fig_s1.png"), slide_16_co2_fig, width = 129, height = 100, units = "mm")
 
