@@ -5,20 +5,14 @@ source("statistics.R")
 
 #Figure 1
 
-#Plot
-# dk_border_raw <- raster::getData("GADM", country = "DNK", level = 0, path = paste0(getwd(), "/data"))
-# dk_border <- dk_border_raw %>% 
-#   st_as_sf() %>% 	
-#   st_crop(xmin = 8, ymin = 54.56, xmax = 14, ymax = 57.76) %>% 	
-#   st_transform(25832) %>% 
-#   st_write(paste0(getwd(), "/data/dk_border.sqlite"))
-
+#Denmark main plot
 dk_border <- st_read(paste0(getwd(), "/data/dk_border.sqlite"))
-gw_clean <- st_read(paste0(getwd(), "/data/gw_clean.sqlite"))
 stream_sites_snap <- st_read(paste0(getwd(), "/data/stream_sites_snap.sqlite"))
-stream_sites_snap_coords <- as.data.frame(st_coordinates(stream_sites_snap))
-stream_sites_snap_sort <- bind_cols(stream_sites_snap, stream_sites_snap_coords) %>% 
-  arrange(Y, X)
+
+gw_clean <- st_read(paste0(getwd(), "/data/gw_clean.sqlite"))
+gw_clean_cent <- as.data.frame(st_coordinates(st_centroid(gw_clean)))
+gw_clean_sort <- bind_cols(gw_clean, gw_clean_cent) %>% 
+  arrange(X, Y)
 
 xlabs <- seq(8, 12, 1)
 ylabs <- seq(54.5, 57.5, 0.5)
@@ -28,7 +22,7 @@ col_vec <- c(rep(col_pal, 4), col_pal[1:4])
 
 map_fig <- ggplot()+
   geom_sf(data = dk_border, fill = NA, col = "grey")+
-  geom_sf(data = gw_clean, aes(fill=factor(id, levels = id)), show.legend = FALSE, col = NA)+
+  geom_sf(data = gw_clean_sort, aes(fill=factor(id, levels = id)), show.legend = FALSE, col = NA)+
   geom_sf(data= stream_sites_snap, size = 0.7)+
   scale_fill_manual(values=col_vec)+
   scale_x_continuous(breaks = xlabs, labels = paste0(xlabs,'°E')) +
@@ -36,7 +30,53 @@ map_fig <- ggplot()+
   xlab("Latitude")+
   ylab("Longitude")
 
-ggsave(paste0(figures_path, "fig_1.png"), map_fig, width = 129, height = 150, units = "mm")
+#Save as .svg and match in inkscape
+ggsave(paste0(figures_path, "fig_1_main.svg"), map_fig, width = 129, height = 150, units = "mm")
+
+#Mølleå subplot
+fig_1_data <- read_excel(rawdata_path, sheet = "fig_1")
+
+mølleå <- st_read(paste0(getwd(), "/data/mølleå.kml")) %>% 
+  st_zm() %>% 
+  select(site = Name) %>% 
+  left_join(fig_1_data)
+
+mølleå_osm <- readRDS(paste0(getwd(), "/data/mølleå_osm.rds"))
+
+mølleå_subplot <- ggplot()+
+  geom_sf(data = mølleå_osm$osm_lines, col = "lightblue")+
+  geom_sf(data = mølleå_osm$osm_polygons, fill = "deepskyblue3", col = "deepskyblue3")+
+  geom_sf(data = mølleå_osm$osm_multipolygons, fill = "deepskyblue3", col = "deepskyblue3")+
+  geom_sf(data = mølleå, aes(size = co2), col="coral")+
+  xlab(NULL)+
+  ylab(NULL)+
+  annotation_scale(location="br")+
+  scale_size(limits = c(0, 435))+
+  guides(size=guide_legend(title=expression("CO"[2]~"("*mu*M*")")))+
+  theme(axis.text = element_blank(), axis.ticks = element_blank())
+
+ggsave(paste0(figures_path, "fig_1_mølleå.svg"), mølleå_subplot, width = 129, height = 150, units = "mm")
+
+#Upper gudenå subplot
+upper_gudenå <- st_read(paste0(getwd(), "/data/upper_gudenå.kml")) %>% 
+  st_zm() %>% 
+  select(site = Name) %>% 
+  left_join(fig_1_data)
+
+upper_gudenå_osm <- readRDS(paste0(getwd(), "/data/upper_gudenå_osm.rds"))
+
+upper_gudenå_subplot <- ggplot()+
+  geom_sf(data = st_crop(upper_gudenå_osm$osm_lines, st_buffer(upper_gudenå, 0.02)), col = "lightblue")+
+  geom_sf(data = upper_gudenå_osm$osm_polygons, fill = "deepskyblue3", col = "deepskyblue3")+
+  geom_sf(data = upper_gudenå_osm$osm_multipolygons, fill = "deepskyblue3", col = "deepskyblue3")+
+  geom_sf(data = upper_gudenå, aes(size = co2), col="coral")+
+  xlab(NULL)+
+  ylab(NULL)+
+  annotation_scale(location="br")+
+  scale_size(limits = c(0, 435))+
+  theme(axis.text = element_blank(), axis.ticks = element_blank())
+
+ggsave(paste0(figures_path, "fig_1_upper_gudenå.svg"), upper_gudenå_subplot, width = 129, height = 150, units = "mm")
 
 #Figure 2A
 slide_5_pred <- data.frame(log_a = seq(-1.1, 2.1, 0.1)) %>% 
