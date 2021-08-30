@@ -121,8 +121,8 @@ slide_11_fig <- slide_11 %>%
   scale_x_continuous(limits=c(1, 425))+
   scale_y_continuous(limits=c(1, 425))+
   scale_shape_manual(values = c("Lake" = 19, "No lake" = 1))+
-  ylab(expression("Sep-May CO"[2]~"("*mu*M*")"))+
-  xlab(expression("June-Aug CO"[2]~"("*mu*M*")"))
+  ylab(expression("Sep–May CO"[2]~"("*mu*M*")"))+
+  xlab(expression("June–Aug CO"[2]~"("*mu*M*")"))
 
 #Figure 3B
 slide_13_fig <- slide_13 %>% 
