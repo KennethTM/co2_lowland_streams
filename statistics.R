@@ -130,4 +130,9 @@ table_3_mod <- merge %>%
   select(co2_flux, index, total_area) %>% 
   na.omit() 
 
-summary(lm(co2_flux~index+log10(total_area), data = table_3_mod))
+co2_gw_lm0 <- lm(co2_flux~index*log10(total_area), data = table_3_mod)
+drop1(co2_gw_lm0, test = "F")
+co2_gw_lm1 <- update(co2_gw_lm0, . ~ . -index:log10(total_area))
+drop1(co2_gw_lm1, test = "F")
+
+summary(co2_gw_lm1)
