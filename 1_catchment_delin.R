@@ -1,4 +1,4 @@
-source("libs_and_funcs.R")
+source("0_libs_and_funcs.R")
 
 #Crop DEM
 gdalwarp(srcfile = paste0(getwd(), "/data/dhym_10m.tif"),

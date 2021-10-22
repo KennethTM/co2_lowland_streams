@@ -1,4 +1,4 @@
-source("libs_and_funcs.R")
+source("0_libs_and_funcs.R")
 
 #Match sites with observations with discharge and base flow index observations manually
 stream_sites_snap <- st_read(paste0(getwd(), "/data/stream_sites_snap.sqlite"))
