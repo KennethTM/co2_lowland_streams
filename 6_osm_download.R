@@ -1,5 +1,6 @@
 #Download dk border data using Raster package
 library(raster);library(sf)
+
 dk_border_raw <- raster::getData("GADM", country = "DNK", level = 0, path = paste0(getwd(), "/data"))
 dk_border <- dk_border_raw %>%
   st_as_sf() %>%
