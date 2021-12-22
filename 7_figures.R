@@ -230,10 +230,11 @@ slide_20_pred <- data.frame(wtr = seq(8, 23, 0.1)) %>%
 slide_16_wtr_fig <- slide_16 %>% 
   filter(flux < 300) %>% 
   ggplot(aes(wtr, flux)) +
-  geom_point(shape=1)+
+  geom_point(aes(shape = `Lake influence`))+
   geom_line(data=slide_20_pred, aes(col=Quantile), size=1.2)+
   scale_color_viridis_d()+
   geom_point(data = slide_16_broken_axis, aes(wtr, 300), shape=1)+
+  scale_shape_manual(values = c("Lake" = 19, "No lake" = 1))+
   geom_text(data = slide_16_broken_axis, aes(wtr, 300, label=format(flux, digits = 0)), nudge_x = 1, size =3)+
   annotate("text", x=19.5, y=260, label = qr_eqn(wtr_qr_10, "0.1"), parse=TRUE)+
   annotate("text", x=19.5, y=230, label = qr_eqn(wtr_qr_50, "0.5"), parse=TRUE)+
