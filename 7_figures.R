@@ -1,4 +1,3 @@
-source("0_libs_and_funcs.R")
 source("5_statistics.R")
 
 #Figures
@@ -76,7 +75,7 @@ fig_1_raw <- map_fig+upper_gudenå_subplot+mølleå_subplot+plot_layout(ncol=1)
 ggsave(paste0(figures_path, "fig_1_raw.pdf"), fig_1_raw, width = 174, height = 234, units = "mm")
 
 #Figure 2A
-slide_5_pred <- data.frame(log_a = seq(-1.1, 2.1, 0.1)) %>% 
+figure_2a_pred <- data.frame(log_a = seq(-1.1, 2.1, 0.1)) %>% 
   mutate(pred_10 = predict(qr_10, newdata=.),
          pred_50 = predict(qr_50, newdata=.),
          pred_90 = predict(qr_90, newdata=.)) %>% 
@@ -84,10 +83,10 @@ slide_5_pred <- data.frame(log_a = seq(-1.1, 2.1, 0.1)) %>%
   separate(pred, c("pred", "q"), "_") %>% 
   mutate(Quantile = factor(as.numeric(q)/100))
 
-slide_5_fig <- slide_5 %>% 
+figure_2a_fig <- figure_2a_data %>% 
   ggplot(aes(log_a, log_co2)) +
   geom_point(shape=1)+
-  geom_line(data=slide_5_pred, aes(col=Quantile), size=1.2)+
+  geom_line(data=figure_2a_pred, aes(col=Quantile), size=1.2)+
   scale_color_viridis_d()+
   scale_y_continuous(limits = c(-0.2, 3), breaks = c(0, 1, 2, 3), labels = c(1, 10, 100, 1000))+
   scale_x_continuous(breaks = c(-1, 0, 1, 2), labels = c(0.1, 1, 10, 100))+
@@ -98,23 +97,23 @@ slide_5_fig <- slide_5 %>%
   xlab(expression(Wetted~area~"(m"^{2}*")"))
 
 #Figure 2B
-slide_6_fig <- slide_6 %>% 
+figure_2b_fig <- figure_2b_data %>% 
   ggplot(aes(co2_morning, co2_evening)) +
   geom_abline(intercept = 0, slope=1, linetype=3)+
   geom_point(shape=1)+
   geom_smooth(method="lm", col="black")+
   scale_x_log10(limits=c(1, 1000))+
   scale_y_log10(limits=c(1, 1000))+
-  annotate("text", x=10, y=1000, label = lm_eqn(slide_6_lm), parse=TRUE)+
+  annotate("text", x=10, y=1000, label = lm_eqn(figure_2b_lm), parse=TRUE)+
   ylab(expression("Afternoon"~CO[2]~"("*mu*M*")"))+
   xlab(expression("Morning"~CO[2]~"("*mu*M*")"))
 
-fig_2 <- slide_5_fig/slide_6_fig+plot_annotation(tag_levels = "A")
+fig_2 <- figure_2a_fig/figure_2b_fig+plot_annotation(tag_levels = "A")
 
 ggsave(paste0(figures_path, "fig_2.png"), fig_2, width = 129, height = 180, units = "mm")
 
 #Figure 3A
-slide_11_fig <- slide_11 %>% 
+figure_3a_fig <- figure_3a_data %>% 
   ggplot(aes(`June-Aug`, `Sep-May`, shape = `Lake influence`)) +
   geom_abline(intercept = 0, slope=1, linetype=3)+
   geom_point()+
@@ -125,7 +124,7 @@ slide_11_fig <- slide_11 %>%
   xlab(expression("June–Aug CO"[2]~"("*mu*M*")"))
 
 #Figure 3B
-slide_13_fig <- slide_13 %>% 
+figure_3b_fig <- figure_3b_data %>% 
   ggplot(aes(chl, co2))+
   geom_smooth(method = "lm", color="black")+
   geom_point(aes(shape=Time))+
@@ -135,16 +134,16 @@ slide_13_fig <- slide_13 %>%
   ylab(expression("CO"[2]~"("*mu*M*")"))+
   xlab(expression("Chl. "*italic(a)~"("*mu*g~L^{-1}*")"))+
   scale_color_viridis_d()+
-  annotate("text", x=50, y=100, label = lm_eqn(slide_13_lm2), parse=TRUE)
+  annotate("text", x=50, y=100, label = lm_eqn(figure_3b_lm2), parse=TRUE)
 
-fig_3 <- slide_11_fig/slide_13_fig+plot_annotation(tag_levels = "A")
+fig_3 <- figure_3a_fig/figure_3b_fig+plot_annotation(tag_levels = "A")
 
 ggsave(paste0(figures_path, "fig_3.png"), fig_3, width = 129, height = 180, units = "mm")
 
 #Figure 4
-x <- slide_7_8$log_chl
-y <- slide_7_8$wtr_morning
-z <- slide_7_8$log_co2_morning
+x <- figure_4_data$log_chl
+y <- figure_4_data$wtr_morning
+z <- figure_4_data$log_co2_morning
 fit <- lm(z ~ x + y)
 
 grid.lines <- 40
@@ -179,7 +178,7 @@ fig_5_inset_map <- ggplot()+
   annotation_scale(location="br")+
   theme(axis.text = element_blank(), axis.ticks = element_blank())
 
-slide_10 <- read_excel(rawdata_path, sheet = "slide_10") %>% 
+figure_5_data <- read_excel(rawdata_path, sheet = "figure_5") %>% 
   na.omit() %>% 
   mutate(co2 = 10^log_co2,
          date = ymd("1995-01-01")+time) %>% 
@@ -187,7 +186,7 @@ slide_10 <- read_excel(rawdata_path, sheet = "slide_10") %>%
   filter(Site != "Pølebro 2") %>% 
   left_join(st_drop_geometry(inset_sites), by = c("Site" = "Name"))
 
-fig_5 <- slide_10 %>% 
+figure_5_fig <- figure_5_data %>% 
   ggplot(aes(date, co2, col=name))+
   geom_point(size=0.7)+
   geom_line()+
@@ -201,25 +200,25 @@ ggsave(paste0(figures_path, "fig_5_raw.svg"), fig_5, width = 129, height = 84, u
 ggsave(paste0(figures_path, "fig_5_inset_map.svg"), fig_5_inset_map, width = 129, height = 84, units = "mm")
 
 #Figure 6A
-slide_16_broken_axis <- slide_16 %>% 
+figure_6a_broken_axis <- figure_6a_data %>% 
   filter(flux > 300)
 
-slide_16_fig <- slide_16 %>% 
+figure_6a_fig <- figure_6a_data %>% 
   filter(flux < 300) %>% 
   ggplot(aes(a, flux, shape = `Lake influence`))+
   geom_hline(yintercept = 0, linetype=3)+
   geom_point()+
   geom_smooth(inherit.aes = FALSE, aes(a, flux), method = "loess", color="black")+
   scale_x_log10()+
-  geom_point(data = slide_16_broken_axis, aes(a, 300), shape=1)+
-  geom_text(data = slide_16_broken_axis, aes(a, 300, label=format(flux, digits = 0)), nudge_x = 0.2, size =3)+
+  geom_point(data = figure_6a_broken_axis, aes(a, 300), shape=1)+
+  geom_text(data = figure_6a_broken_axis, aes(a, 300, label=format(flux, digits = 0)), nudge_x = 0.2, size =3)+
   scale_shape_manual(values = c("Lake" = 19, "No lake" = 1))+
   ylab(expression("CO"[2]~"flux (mg C m"^{-2}~h^{-1}*")"))+
   xlab(expression("Wetted area (m"^{2}*")"))+
   theme(legend.position = c(0.85, 0.85))
 
 #Figure 6B
-slide_20_pred <- data.frame(wtr = seq(8, 23, 0.1)) %>% 
+figure_6b_pred <- data.frame(wtr = seq(8, 23, 0.1)) %>% 
   mutate(pred_10 = predict(wtr_qr_10, newdata=.),
          pred_50 = predict(wtr_qr_50, newdata=.),
          pred_90 = predict(wtr_qr_90, newdata=.)) %>% 
@@ -227,27 +226,27 @@ slide_20_pred <- data.frame(wtr = seq(8, 23, 0.1)) %>%
   separate(pred, c("pred", "q"), "_") %>% 
   mutate(Quantile = factor(as.numeric(q)/100))
 
-slide_16_wtr_fig <- slide_16 %>% 
+figure_6b_wtr_fig <- figure_6a_data %>% 
   filter(flux < 300) %>% 
   ggplot(aes(wtr, flux)) +
   geom_point(aes(shape = `Lake influence`))+
-  geom_line(data=slide_20_pred, aes(col=Quantile), size=1.2)+
+  geom_line(data=figure_6b_pred, aes(col=Quantile), size=1.2)+
   scale_color_viridis_d()+
-  geom_point(data = slide_16_broken_axis, aes(wtr, 300), shape=1)+
+  geom_point(data = figure_6a_broken_axis, aes(wtr, 300), shape=1)+
   scale_shape_manual(values = c("Lake" = 19, "No lake" = 1))+
-  geom_text(data = slide_16_broken_axis, aes(wtr, 300, label=format(flux, digits = 0)), nudge_x = 1, size =3)+
+  geom_text(data = figure_6a_broken_axis, aes(wtr, 300, label=format(flux, digits = 0)), nudge_x = 1, size =3)+
   annotate("text", x=19.5, y=260, label = qr_eqn(wtr_qr_10, "0.1"), parse=TRUE)+
   annotate("text", x=19.5, y=230, label = qr_eqn(wtr_qr_50, "0.5"), parse=TRUE)+
   annotate("text", x=19.5, y=200, label = qr_eqn(wtr_qr_90, "0.9"), parse=TRUE)+
   ylab(expression("CO"[2]~"flux (mg C m"^{-2}~h^{-1}*")"))+
   xlab("Water temperature (°C)")
 
-fig_6 <- slide_16_fig+slide_16_wtr_fig+plot_layout(guides = "collect", ncol=1)+plot_annotation(tag_levels = "A")
+fig_6 <- figure_6a_fig+figure_6b_wtr_fig+plot_layout(guides = "collect", ncol=1)+plot_annotation(tag_levels = "A")
 
 ggsave(paste0(figures_path, "fig_6.png"), fig_6, width = 129, height = 180, units = "mm")
 
 #Figure S1
-slide_21_pred <- data.frame(co2_morning = seq(0, 735, 1)) %>% 
+figure_s1_pred <- data.frame(co2_morning = seq(0, 735, 1)) %>% 
   mutate(pred_10 = predict(co2_qr_10, newdata=.),
          pred_50 = predict(co2_qr_50, newdata=.),
          pred_90 = predict(co2_qr_90, newdata=.)) %>% 
@@ -255,10 +254,10 @@ slide_21_pred <- data.frame(co2_morning = seq(0, 735, 1)) %>%
   separate(pred, c("pred", "q"), "_") %>% 
   mutate(Quantile = factor(as.numeric(q)/100))
 
-slide_16_co2_fig <- slide_16 %>% 
+figure_s1_co2_fig <- figure_6a_data %>% 
   ggplot(aes(co2_morning, flux)) +
   geom_point(shape=1)+
-  geom_line(data=slide_21_pred, aes(col=Quantile), size=1.2)+
+  geom_line(data=figure_s1_pred, aes(col=Quantile), size=1.2)+
   scale_color_viridis_d()+
   annotate("text", x=200, y=500, label = qr_eqn(co2_qr_10, "0.1"), parse=TRUE)+
   annotate("text", x=200, y=450, label = qr_eqn(co2_qr_50, "0.5"), parse=TRUE)+
@@ -267,7 +266,7 @@ slide_16_co2_fig <- slide_16 %>%
   xlab(expression("CO"[2]~"("*mu*M*")"))+
   coord_cartesian(ylim = c(0, 505))
 
-ggsave(paste0(figures_path, "fig_s1.png"), slide_16_co2_fig, width = 129, height = 100, units = "mm")
+ggsave(paste0(figures_path, "fig_s1.png"), figure_s1_co2_fig, width = 129, height = 100, units = "mm")
 
 #Table 1
 table_1_data %>% 
