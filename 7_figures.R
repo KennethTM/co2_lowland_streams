@@ -29,11 +29,40 @@ map_fig <- ggplot()+
   xlab("Latitude")+
   ylab("Longitude")
 
-#Save as .pdf and edit in inkscape
 ggsave(paste0(figures_path, "fig_1.png"), map_fig, width = 84, height = 90, units = "mm")
 
-#Figure 2A
-figure_2a_pred <- data.frame(log_a = seq(-1.1, 2.1, 0.1)) %>% 
+#Figure 2
+figure_2_data <- read_excel(rawdata_path, sheet = "figure_2") |> 
+  filter(site != "pøle") |> 
+  mutate(`Lake influence` = ifelse(lake == 1, "Lake", "No lake"),
+         site = factor(site, levels = c("græse", "havelse", "mølle", "guden")))
+
+ann_text <- data.frame(position = 1,
+                       co2_morning = 720,
+                       lab = c("Græse", "Havelse", "Mølle", "Guden"),
+                       site = factor(c("græse", "havelse", "mølle", "guden")
+                                     , levels = c("græse", "havelse", "mølle", "guden")))
+
+figure_2 <- figure_2_data |> 
+  ggplot(aes(position, co2_morning))+
+  geom_hline(yintercept = 20, linetype=3)+
+  geom_text(data = ann_text, aes(label = lab), hjust=0)+
+  geom_line(linetype=1)+
+  geom_point(aes(shape = `Lake influence`), fill="white")+
+  scale_shape_manual(values = c("Lake" = 19, "No lake" = 21))+
+  facet_wrap(site~., scale = "free_x")+
+  scale_x_continuous(breaks = seq(1, 21, 2))+
+  ylim(0, 730)+
+  theme(strip.background = element_blank(),
+        strip.text = element_blank(),
+        legend.position = "bottom")+
+  ylab(expression(CO[2]~"("*mu*M*")"))+
+  xlab("Fluvial network position")
+
+ggsave(paste0(figures_path, "fig_2.png"), figure_2, width = 129, height = 129, units = "mm")
+
+#Figure 3
+figure_3_pred <- data.frame(log_a = seq(-1.1, 2.1, 0.1)) %>% 
   mutate(pred_10 = predict(qr_10, newdata=.),
          pred_50 = predict(qr_50, newdata=.),
          pred_90 = predict(qr_90, newdata=.)) %>% 
@@ -41,67 +70,70 @@ figure_2a_pred <- data.frame(log_a = seq(-1.1, 2.1, 0.1)) %>%
   separate(pred, c("pred", "q"), "_") %>% 
   mutate(Quantile = factor(as.numeric(q)/100))
 
-figure_2a_fig <- figure_2a_data %>% 
+figure_3_fig <- figure_3_data %>% 
   ggplot(aes(log_a, log_co2)) +
-  geom_point(shape=1)+
-  geom_line(data=figure_2a_pred, aes(col=Quantile), size=1.2)+
+  geom_point(aes(shape = `Lake influence`))+
+  geom_line(data=figure_3_pred, aes(col=Quantile), size=1.2)+
   scale_color_viridis_d()+
   scale_y_continuous(limits = c(-0.2, 3), breaks = c(0, 1, 2, 3), labels = c(1, 10, 100, 1000))+
   scale_x_continuous(breaks = c(-1, 0, 1, 2), labels = c(0.1, 1, 10, 100))+
   annotate("text", x=1.5, y=3, label = qr_eqn(qr_10, "0.1"), parse=TRUE)+
   annotate("text", x=1.5, y=2.8, label = qr_eqn(qr_50, "0.5"), parse=TRUE)+
   annotate("text", x=1.5, y=2.6, label = qr_eqn(qr_90, "0.9"), parse=TRUE)+
+  scale_shape_manual(values = c("Lake" = 19, "No lake" = 21))+
   ylab(expression(CO[2]~"("*mu*M*")"))+
   xlab(expression(Wetted~area~"(m"^{2}*")"))
 
-#Figure 2B
-figure_2b_fig <- figure_2b_data %>% 
-  ggplot(aes(co2_morning, co2_evening)) +
-  geom_abline(intercept = 0, slope=1, linetype=3)+
-  geom_point(shape=1)+
-  geom_smooth(method="lm", col="black")+
-  scale_x_log10(limits=c(1, 1000))+
-  scale_y_log10(limits=c(1, 1000))+
-  annotate("text", x=10, y=1000, label = lm_eqn(figure_2b_lm), parse=TRUE)+
-  ylab(expression("Afternoon"~CO[2]~"("*mu*M*")"))+
-  xlab(expression("Morning"~CO[2]~"("*mu*M*")"))
+ggsave(paste0(figures_path, "fig_3.png"), figure_3_fig, width = 129, height = 90, units = "mm")
 
-fig_2 <- figure_2a_fig/figure_2b_fig+plot_annotation(tag_levels = "A")
+#Figure 4
+figure_4_data <- read_excel(rawdata_path, sheet = "figure_4") %>% 
+  na.omit() %>% 
+  mutate(`Lake influence` = factor(ifelse(lake == 0, "No lake", "Lake")))
 
-ggsave(paste0(figures_path, "fig_2.png"), fig_2, width = 129, height = 180, units = "mm")
-
-#Figure 3A
-figure_3a_fig <- figure_3a_data %>% 
+figure_4_fig <- figure_4_data %>% 
   ggplot(aes(`June-Aug`, `Sep-May`, shape = `Lake influence`)) +
-  geom_abline(intercept = 0, slope=1, linetype=3)+
+  geom_abline(intercept = 0, slope=1, linetype=2)+
+  geom_abline(intercept = 0, slope=2, linetype=2)+
+  geom_abline(intercept = 0, slope=3, linetype=2)+
   geom_point()+
   scale_x_continuous(limits=c(1, 425))+
   scale_y_continuous(limits=c(1, 425))+
+  annotate("text", x = 425, y = 400, label = "1:1")+
+  annotate("text", x = 220, y = 400, label = "1:2")+
+  annotate("text", x = 150, y = 400, label = "1:3")+
   scale_shape_manual(values = c("Lake" = 19, "No lake" = 1))+
   ylab(expression("Sep–May CO"[2]~"("*mu*M*")"))+
-  xlab(expression("June–Aug CO"[2]~"("*mu*M*")"))
+  xlab(expression("June–Aug CO"[2]~"("*mu*M*")"))+
+  theme(legend.position = c(0.7, 0.25))+
+  coord_equal()
 
-#Figure 3B
-figure_3b_fig <- figure_3b_data %>% 
+figure_4_fig
+
+ggsave(paste0(figures_path, "fig_4.png"), figure_4_fig, width = 129, height = 90, units = "mm")
+
+#Figure 5
+figure_5_fig <- figure_5_data %>% 
   ggplot(aes(chl, co2))+
   geom_smooth(method = "lm", color="black")+
-  geom_point(aes(shape=Time))+
+  geom_point(aes(shape=`Time of day`))+
   scale_y_log10()+
   scale_x_log10()+
   scale_shape_manual(values=c(1, 19))+
   ylab(expression("CO"[2]~"("*mu*M*")"))+
   xlab(expression("Chl. "*italic(a)~"("*mu*g~L^{-1}*")"))+
   scale_color_viridis_d()+
-  annotate("text", x=50, y=100, label = lm_eqn(figure_3b_lm2), parse=TRUE)
+  annotate("text", x=50, y=100, label = lm_eqn(figure_5_lm2), parse=TRUE)+
+  theme(legend.position = c(0.2, 0.2))
 
-fig_3 <- figure_3a_fig/figure_3b_fig+plot_annotation(tag_levels = "A")
+figure_5_fig
 
-ggsave(paste0(figures_path, "fig_3.png"), fig_3, width = 129, height = 180, units = "mm")
+ggsave(paste0(figures_path, "fig_5.png"), figure_5_fig, width = 129, height = 90, units = "mm")
 
-#Figure 4
-x <- figure_4_data$log_chl
-y <- figure_4_data$wtr_morning
-z <- figure_4_data$log_co2_morning
+#Figure 6
+x <- figure_6_data$log_chl
+y <- figure_6_data$wtr_morning
+z <- figure_6_data$log_co2_morning
 fit <- lm(z ~ x + y)
 
 grid.lines <- 40
@@ -111,7 +143,7 @@ xy <- expand.grid( x = x.pred, y = y.pred)
 z.pred <- matrix(predict(fit, newdata = xy), nrow = grid.lines, ncol = grid.lines)
 fitpoints <- predict(fit)
 
-svg(paste0(figures_path, "fig_4_raw.svg"), width = 5.07874, height = 5.07874)
+svg(paste0(figures_path, "fig_6_raw.svg"), width = 5.07874, height = 5.07874)
 scatter3D(x, y, z, pch = 19, cex = 1, colvar = NULL, col="black",
           theta = 120, phi = 20, bty="b", ticktype="detailed",
           xlab = "log10(Chl. a)", ylab = "Water temp.", zlab = "log10(CO2)",
@@ -119,13 +151,13 @@ scatter3D(x, y, z, pch = 19, cex = 1, colvar = NULL, col="black",
                       col=ramp.col(col = c("seagreen1", "dodgerblue3"), n = 300, alpha=0.5)))
 dev.off()
 
-#Figure 5
+#Figure 7
 inset_sites <- st_read(paste0(getwd(), "/data/lake_arre_network.kml")) %>% 
   add_column(name = as.character(c(6, 5, 3, 4, 2, 1)))
 
 q_sf <- readRDS(paste0(getwd(), "/data/lake_arre_network_osm.rds"))
 
-fig_5_inset_map <- ggplot()+
+fig_7_inset_map <- ggplot()+
   geom_sf(data = q_sf$osm_lines, col = "lightblue")+
   geom_sf(data = filter(q_sf$osm_polygons, osm_id != "4761877"), fill = "deepskyblue3", col = "deepskyblue3")+
   geom_sf(data = filter(q_sf$osm_multipolygons, osm_id != "4547983"), fill = "deepskyblue3", col = "deepskyblue3")+
@@ -136,7 +168,7 @@ fig_5_inset_map <- ggplot()+
   annotation_scale(location="br")+
   theme(axis.text = element_blank(), axis.ticks = element_blank())
 
-figure_5_data <- read_excel(rawdata_path, sheet = "figure_5") %>% 
+figure_7_data <- read_excel(rawdata_path, sheet = "figure_7") %>% 
   na.omit() %>% 
   mutate(co2 = 10^log_co2,
          date = ymd("1995-01-01")+time) %>% 
@@ -144,7 +176,7 @@ figure_5_data <- read_excel(rawdata_path, sheet = "figure_5") %>%
   filter(Site != "Pølebro 2") %>% 
   left_join(st_drop_geometry(inset_sites), by = c("Site" = "Name"))
 
-figure_5_fig <- figure_5_data %>% 
+figure_7_fig <- figure_7_data %>% 
   ggplot(aes(date, co2, col=name))+
   geom_point(size=0.7)+
   geom_line()+
@@ -154,29 +186,29 @@ figure_5_fig <- figure_5_data %>%
   xlab("Month")+
   scale_color_brewer(palette = "Dark2", name = "Site")
 
-ggsave(paste0(figures_path, "fig_5_raw.svg"), fig_5, width = 129, height = 84, units = "mm")
-ggsave(paste0(figures_path, "fig_5_inset_map.svg"), fig_5_inset_map, width = 129, height = 84, units = "mm")
+ggsave(paste0(figures_path, "fig_7_raw.svg"), figure_7_fig, width = 129, height = 84, units = "mm")
+ggsave(paste0(figures_path, "fig_7_inset_map.svg"), fig_7_inset_map, width = 129, height = 84, units = "mm")
 
-#Figure 6A
-figure_6a_broken_axis <- figure_6a_data %>% 
+#Figure 8
+figure_8_broken_axis <- figure_8_data %>% 
   filter(flux > 300)
 
-figure_6a_fig <- figure_6a_data %>% 
+figure_8_fig <- figure_8_data %>% 
   filter(flux < 300) %>% 
   ggplot(aes(a, flux, shape = `Lake influence`))+
   geom_hline(yintercept = 0, linetype=3)+
   geom_point()+
   geom_smooth(inherit.aes = FALSE, aes(a, flux), method = "loess", color="black")+
   scale_x_log10()+
-  geom_point(data = figure_6a_broken_axis, aes(a, 300), shape=1)+
-  geom_text(data = figure_6a_broken_axis, aes(a, 300, label=format(flux, digits = 0)), nudge_x = 0.2, size =3)+
+  geom_point(data = figure_8_broken_axis, aes(a, 300), shape=1)+
+  geom_text(data = figure_8_broken_axis, aes(a, 300, label=round(flux, 0)), nudge_x = 0.2, size =3)+
   scale_shape_manual(values = c("Lake" = 19, "No lake" = 1))+
   ylab(expression("CO"[2]~"flux (mg C m"^{-2}~h^{-1}*")"))+
   xlab(expression("Wetted area (m"^{2}*")"))+
   theme(legend.position = c(0.85, 0.85))
 
-#Figure 6B
-figure_6b_pred <- data.frame(wtr = seq(8, 23, 0.1)) %>% 
+#Figure 8B
+figure_8b_pred <- data.frame(wtr = seq(8, 23, 0.1)) %>% 
   mutate(pred_10 = predict(wtr_qr_10, newdata=.),
          pred_50 = predict(wtr_qr_50, newdata=.),
          pred_90 = predict(wtr_qr_90, newdata=.)) %>% 
@@ -184,24 +216,24 @@ figure_6b_pred <- data.frame(wtr = seq(8, 23, 0.1)) %>%
   separate(pred, c("pred", "q"), "_") %>% 
   mutate(Quantile = factor(as.numeric(q)/100))
 
-figure_6b_wtr_fig <- figure_6a_data %>% 
+figure_8b_wtr_fig <- figure_8_data %>% 
   filter(flux < 300) %>% 
   ggplot(aes(wtr, flux)) +
   geom_point(aes(shape = `Lake influence`))+
-  geom_line(data=figure_6b_pred, aes(col=Quantile), size=1.2)+
+  geom_line(data=figure_8b_pred, aes(col=Quantile), size=1.2)+
   scale_color_viridis_d()+
-  geom_point(data = figure_6a_broken_axis, aes(wtr, 300), shape=1)+
+  geom_point(data = figure_8_broken_axis, aes(wtr, 300), shape=1)+
   scale_shape_manual(values = c("Lake" = 19, "No lake" = 1))+
-  geom_text(data = figure_6a_broken_axis, aes(wtr, 300, label=format(flux, digits = 0)), nudge_x = 1, size =3)+
+  geom_text(data = figure_8_broken_axis, aes(wtr, 300, label=round(flux, digits = 0)), nudge_x = 1, size =3)+
   annotate("text", x=19.5, y=260, label = qr_eqn(wtr_qr_10, "0.1"), parse=TRUE)+
   annotate("text", x=19.5, y=230, label = qr_eqn(wtr_qr_50, "0.5"), parse=TRUE)+
   annotate("text", x=19.5, y=200, label = qr_eqn(wtr_qr_90, "0.9"), parse=TRUE)+
   ylab(expression("CO"[2]~"flux (mg C m"^{-2}~h^{-1}*")"))+
   xlab("Water temperature (°C)")
 
-fig_6 <- figure_6a_fig+figure_6b_wtr_fig+plot_layout(guides = "collect", ncol=1)+plot_annotation(tag_levels = "A")
+fig_8 <- figure_8_fig+figure_8b_wtr_fig+plot_layout(guides = "collect", ncol=1)+plot_annotation(tag_levels = "A")
 
-ggsave(paste0(figures_path, "fig_6.png"), fig_6, width = 129, height = 180, units = "mm")
+ggsave(paste0(figures_path, "fig_8.png"), fig_8, width = 129, height = 180, units = "mm")
 
 #Figure S1
 figure_s1_pred <- data.frame(co2_morning = seq(0, 735, 1)) %>% 
@@ -212,7 +244,7 @@ figure_s1_pred <- data.frame(co2_morning = seq(0, 735, 1)) %>%
   separate(pred, c("pred", "q"), "_") %>% 
   mutate(Quantile = factor(as.numeric(q)/100))
 
-figure_s1_co2_fig <- figure_6a_data %>% 
+figure_s1_co2_fig <- figure_8_data %>% 
   ggplot(aes(co2_morning, flux)) +
   geom_point(shape=1)+
   geom_line(data=figure_s1_pred, aes(col=Quantile), size=1.2)+
