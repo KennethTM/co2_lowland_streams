@@ -29,50 +29,8 @@ map_fig <- ggplot()+
   xlab("Latitude")+
   ylab("Longitude")
 
-#Mølleå subplot
-fig_1_data <- read_excel(rawdata_path, sheet = "fig_1")
-
-mølleå <- st_read(paste0(getwd(), "/data/mølleå.kml")) %>% 
-  st_zm() %>% 
-  select(site = Name) %>% 
-  left_join(fig_1_data)
-
-mølleå_osm <- readRDS(paste0(getwd(), "/data/mølleå_osm.rds"))
-
-mølleå_subplot <- ggplot()+
-  geom_sf(data = mølleå_osm$osm_lines, col = "lightblue", size=1)+
-  geom_sf(data = mølleå_osm$osm_polygons, fill = "deepskyblue3", col = "deepskyblue3")+
-  geom_sf(data = mølleå_osm$osm_multipolygons, fill = "deepskyblue3", col = "deepskyblue3")+
-  geom_sf(data = mølleå)+
-  geom_sf_text(data = mølleå, aes(label = format(co2, digits=0)), nudge_y = 0.0025)+
-  xlab(NULL)+
-  ylab(NULL)+
-  annotation_scale(location="br")+
-  theme(axis.text = element_blank(), axis.ticks = element_blank())
-
-#Upper gudenå subplot
-upper_gudenå <- st_read(paste0(getwd(), "/data/upper_gudenå.kml")) %>% 
-  st_zm() %>% 
-  select(site = Name) %>% 
-  left_join(fig_1_data)
-
-upper_gudenå_osm <- readRDS(paste0(getwd(), "/data/upper_gudenå_osm.rds"))
-osm_lines_crop <- st_crop(upper_gudenå_osm$osm_lines, st_buffer(upper_gudenå, 0.02))
-
-upper_gudenå_subplot <- ggplot()+
-  geom_sf(data = osm_lines_crop, col = "lightblue", size = 1)+
-  geom_sf(data = upper_gudenå_osm$osm_polygons, fill = "deepskyblue3", col = "deepskyblue3")+
-  geom_sf(data = upper_gudenå_osm$osm_multipolygons, fill = "deepskyblue3", col = "deepskyblue3")+
-  geom_sf(data = upper_gudenå)+
-  geom_sf_text(data = upper_gudenå, aes(label = format(co2, digits=0)), nudge_y = 0.004)+
-  xlab(NULL)+
-  ylab(NULL)+
-  annotation_scale(location="br")+
-  theme(axis.text = element_blank(), axis.ticks = element_blank())
-
 #Save as .pdf and edit in inkscape
-fig_1_raw <- map_fig+upper_gudenå_subplot+mølleå_subplot+plot_layout(ncol=1)
-ggsave(paste0(figures_path, "fig_1_raw.pdf"), fig_1_raw, width = 174, height = 234, units = "mm")
+ggsave(paste0(figures_path, "fig_1.png"), map_fig, width = 84, height = 90, units = "mm")
 
 #Figure 2A
 figure_2a_pred <- data.frame(log_a = seq(-1.1, 2.1, 0.1)) %>% 
