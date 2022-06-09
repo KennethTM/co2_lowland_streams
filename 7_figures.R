@@ -39,7 +39,7 @@ figure_2_data <- read_excel(rawdata_path, sheet = "figure_2") |>
 
 ann_text <- data.frame(position = 1,
                        co2_morning = 720,
-                       lab = c("Græse", "Havelse", "Mølle", "Guden"),
+                       lab = c("Græse Å", "Havelse Å", "Mølle Å", "Guden Å"),
                        site = factor(c("græse", "havelse", "mølle", "guden")
                                      , levels = c("græse", "havelse", "mølle", "guden")))
 
