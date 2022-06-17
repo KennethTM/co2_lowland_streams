@@ -17,7 +17,7 @@ xlabs <- seq(8, 12, 1)
 ylabs <- seq(54.5, 57.5, 0.5)
 
 col_pal <- brewer.pal(8, "Dark2")
-col_vec <- c(rep(col_pal, 4), col_pal[1:4])
+col_vec <- c(rep(col_pal, 5), col_pal[1])
 
 map_fig <- ggplot()+
   geom_sf(data = dk_border, fill = NA, col = "grey")+

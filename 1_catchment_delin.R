@@ -92,10 +92,10 @@ gw_clean <- st_read(gw_vect) %>%
   st_remove_holes() %>% 
   rename(id = dn) %>% 
   st_join(stream_sites_snap) %>% 
-  mutate(nested_area = as.numeric(st_area(geom)))
+  mutate(nested_area = as.numeric(st_area(geometry)))
 
 #Calculate total non-overlapping area covered by catchments
-sum(gw_clean$nested_area) #6154159200 m2
+sum(gw_clean$nested_area) #7241787300 m2
 
 st_write(gw_clean, paste0(getwd(), "/data/gw_clean.sqlite"), delete_dsn = TRUE)
 
@@ -133,7 +133,7 @@ gw_nonnest_list <- lapply(1:nrow(stream_sites_snap), function(i){
     st_cast("MULTIPOLYGON") %>% 
     st_remove_holes() %>% 
     mutate(id = i,
-           total_area = as.numeric(st_area(geom)))
+           total_area = as.numeric(st_area(geometry)))
 })
 
 gw_nonnest_clean <- do.call(what = rbind, args = gw_nonnest_list) %>% 

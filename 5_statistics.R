@@ -101,7 +101,7 @@ anova(table_1_lm0, table_1_lm1)
 anova(table_1_lm0)
 summary(table_1_lm0)
 
-#Table 3
+#Table 2
 discharge <- read_csv(paste0(getwd(), "/data/sites_discharge.csv"))
 sites_co2 <- read_tsv(paste0(getwd(), "/data/co2_sites_kaj.txt"))
 catchment <- st_read(paste0(getwd(), "/data/gw_nonnest_clean.sqlite")) 
@@ -115,11 +115,11 @@ merge <- discharge %>%
   left_join(catchment_df)
 
 #Relationship between co2 flux and index/catch area
-table_3_mod <- merge %>% 
-  select(co2_flux, index, total_area) %>% 
+table_2_mod <- read_excel(rawdata_path, sheet = "table_2") %>% 
+  select(co2_flux = 7, index = 9, total_area = 10) %>% 
   na.omit() 
 
-co2_gw_lm0 <- lm(co2_flux~index*log10(total_area), data = table_3_mod)
+co2_gw_lm0 <- lm(co2_flux~index*log10(total_area), data = table_2_mod)
 drop1(co2_gw_lm0, test = "F")
 co2_gw_lm1 <- update(co2_gw_lm0, . ~ . -index:log10(total_area))
 drop1(co2_gw_lm1, test = "F")
