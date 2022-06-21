@@ -2,7 +2,7 @@ source("0_libs_and_funcs.R")
 
 #Statistics
 
-#Figure 3
+#Figure 2
 figure_3_data <- read_excel(rawdata_path, sheet = "figure_3") %>%
   mutate(log_a = log10(a),
          log_co2 = log10(co2_morning)) |> 
@@ -11,11 +11,11 @@ figure_3_data <- read_excel(rawdata_path, sheet = "figure_3") %>%
   na.omit() |> 
   mutate(`Lake influence` = ifelse(position == "up", "No lake", "Lake"))
 
-qr_10 <- rq(log_co2~log_a, tau = 0.1, data = figure_3_data)
+qr_10 <- rq(log_co2~log_a, tau = 0.1, data = figure_3_data[figure_3_data$position == "up",])
 summary(qr_10, "boot")
-qr_50 <- rq(log_co2~log_a, tau = 0.5, data = figure_3_data)
+qr_50 <- rq(log_co2~log_a, tau = 0.5, data = figure_3_data[figure_3_data$position == "up",])
 summary(qr_50, "boot")
-qr_90 <- rq(log_co2~log_a, tau = 0.9, data = figure_3_data)
+qr_90 <- rq(log_co2~log_a, tau = 0.9, data = figure_3_data[figure_3_data$position == "up",])
 summary(qr_90, "boot")
 
 #Figure 5

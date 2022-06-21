@@ -31,7 +31,7 @@ map_fig <- ggplot()+
 
 ggsave(paste0(figures_path, "fig_1.png"), map_fig, width = 84, height = 90, units = "mm")
 
-#Figure 2
+#Figure 3
 figure_2_data <- read_excel(rawdata_path, sheet = "figure_2") |> 
   filter(site != "pøle") |> 
   mutate(`Lake influence` = ifelse(lake == 1, "Lake", "No lake"),
@@ -59,9 +59,9 @@ figure_2 <- figure_2_data |>
   ylab(expression(CO[2]~"("*mu*M*")"))+
   xlab("Fluvial network position")
 
-ggsave(paste0(figures_path, "fig_2.png"), figure_2, width = 129, height = 129, units = "mm")
+ggsave(paste0(figures_path, "fig_3.png"), figure_2, width = 129, height = 129, units = "mm")
 
-#Figure 3
+#Figure 2
 figure_3_pred <- data.frame(log_a = seq(-1.1, 2.1, 0.1)) %>% 
   mutate(pred_10 = predict(qr_10, newdata=.),
          pred_50 = predict(qr_50, newdata=.),
@@ -84,7 +84,7 @@ figure_3_fig <- figure_3_data %>%
   ylab(expression(CO[2]~"("*mu*M*")"))+
   xlab(expression(Wetted~area~"(m"^{2}*")"))
 
-ggsave(paste0(figures_path, "fig_3.png"), figure_3_fig, width = 129, height = 90, units = "mm")
+ggsave(paste0(figures_path, "fig_2.png"), figure_3_fig, width = 129, height = 90, units = "mm")
 
 #Figure 4
 figure_4_data <- read_excel(rawdata_path, sheet = "figure_4") %>% 
@@ -102,6 +102,7 @@ figure_4_fig <- figure_4_data %>%
   annotate("text", x = 425, y = 400, label = "1:1")+
   annotate("text", x = 220, y = 400, label = "1:2")+
   annotate("text", x = 150, y = 400, label = "1:3")+
+  annotate("point", x = 16, y = 20, shape = 19, col="dodgerblue")+
   scale_shape_manual(values = c("Lake" = 19, "No lake" = 1))+
   ylab(expression("Sep–May CO"[2]~"("*mu*M*")"))+
   xlab(expression("June–Aug CO"[2]~"("*mu*M*")"))+
