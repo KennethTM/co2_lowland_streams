@@ -64,11 +64,11 @@ figure_8_data <- read_excel(rawdata_path, sheet = "figure_3") %>%
   mutate(log_a = log10(a),
          `Lake influence` = factor(ifelse(position == "up", "No lake", "Lake")))
 
-flux_qr_10 <- rq(flux~log_a, tau = 0.1, data = figure_8_data)
+flux_qr_10 <- rq(flux~log_a, tau = 0.1, data = figure_8_data[figure_8_data$position == "up",])
 summary(flux_qr_10, "boot")
-flux_qr_50 <- rq(flux~log_a, tau = 0.5, data = figure_8_data)
+flux_qr_50 <- rq(flux~log_a, tau = 0.5, data = figure_8_data[figure_8_data$position == "up",])
 summary(flux_qr_50, "boot")
-flux_qr_90 <- rq(flux~log_a, tau = 0.9, data = figure_8_data)
+flux_qr_90 <- rq(flux~log_a, tau = 0.9, data = figure_8_data[figure_8_data$position == "up",])
 summary(flux_qr_90, "boot")
 
 #Figure 8B

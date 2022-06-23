@@ -209,28 +209,41 @@ figure_8_fig <- figure_8_data %>%
   theme(legend.position = c(0.85, 0.85))
 
 #Figure 8B
-figure_8b_pred <- data.frame(wtr = seq(8, 23, 0.1)) %>% 
-  mutate(pred_10 = predict(wtr_qr_10, newdata=.),
-         pred_50 = predict(wtr_qr_50, newdata=.),
-         pred_90 = predict(wtr_qr_90, newdata=.)) %>% 
-  gather(pred, flux, -wtr) %>% 
-  separate(pred, c("pred", "q"), "_") %>% 
-  mutate(Quantile = factor(as.numeric(q)/100))
+# figure_8b_pred <- data.frame(wtr = seq(8, 23, 0.1)) %>% 
+#   mutate(pred_10 = predict(wtr_qr_10, newdata=.),
+#          pred_50 = predict(wtr_qr_50, newdata=.),
+#          pred_90 = predict(wtr_qr_90, newdata=.)) %>% 
+#   gather(pred, flux, -wtr) %>% 
+#   separate(pred, c("pred", "q"), "_") %>% 
+#   mutate(Quantile = factor(as.numeric(q)/100))
+# 
+# figure_8b_wtr_fig <- figure_8_data %>% 
+#   filter(flux < 300) %>% 
+#   ggplot(aes(wtr, flux)) +
+#   geom_point(aes(shape = `Lake influence`))+
+#   geom_line(data=figure_8b_pred, aes(col=Quantile), size=1.2)+
+#   scale_color_viridis_d()+
+#   geom_point(data = figure_8_broken_axis, aes(wtr, 300), shape=1)+
+#   scale_shape_manual(values = c("Lake" = 19, "No lake" = 1))+
+#   geom_text(data = figure_8_broken_axis, aes(wtr, 300, label=round(flux, digits = 0)), nudge_x = 1, size =3)+
+#   annotate("text", x=19.5, y=260, label = qr_eqn(wtr_qr_10, "0.1"), parse=TRUE)+
+#   annotate("text", x=19.5, y=230, label = qr_eqn(wtr_qr_50, "0.5"), parse=TRUE)+
+#   annotate("text", x=19.5, y=200, label = qr_eqn(wtr_qr_90, "0.9"), parse=TRUE)+
+#   ylab(expression("CO"[2]~"flux (mg C m"^{-2}~h^{-1}*")"))+
+#   xlab("Water temperature (°C)")
 
 figure_8b_wtr_fig <- figure_8_data %>% 
   filter(flux < 300) %>% 
-  ggplot(aes(wtr, flux)) +
-  geom_point(aes(shape = `Lake influence`))+
-  geom_line(data=figure_8b_pred, aes(col=Quantile), size=1.2)+
-  scale_color_viridis_d()+
+  ggplot(aes(wtr, flux, shape = `Lake influence`))+
+  geom_hline(yintercept = 0, linetype=3)+
+  geom_point()+
+  geom_smooth(inherit.aes = FALSE, aes(wtr, flux), method = "loess", color="black")+
   geom_point(data = figure_8_broken_axis, aes(wtr, 300), shape=1)+
+  geom_text(data = figure_8_broken_axis, aes(wtr, 300, label=round(flux, 0)), nudge_x = 1, size =3)+
   scale_shape_manual(values = c("Lake" = 19, "No lake" = 1))+
-  geom_text(data = figure_8_broken_axis, aes(wtr, 300, label=round(flux, digits = 0)), nudge_x = 1, size =3)+
-  annotate("text", x=19.5, y=260, label = qr_eqn(wtr_qr_10, "0.1"), parse=TRUE)+
-  annotate("text", x=19.5, y=230, label = qr_eqn(wtr_qr_50, "0.5"), parse=TRUE)+
-  annotate("text", x=19.5, y=200, label = qr_eqn(wtr_qr_90, "0.9"), parse=TRUE)+
   ylab(expression("CO"[2]~"flux (mg C m"^{-2}~h^{-1}*")"))+
-  xlab("Water temperature (°C)")
+  xlab("Water temperature (°C)")+
+  theme(legend.position = c(0.85, 0.85))
 
 fig_8 <- figure_8_fig+figure_8b_wtr_fig+plot_layout(guides = "collect", ncol=1)+plot_annotation(tag_levels = "A")
 
