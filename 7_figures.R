@@ -102,7 +102,7 @@ figure_4_fig <- figure_4_data %>%
   annotate("text", x = 425, y = 400, label = "1:1")+
   annotate("text", x = 220, y = 400, label = "1:2")+
   annotate("text", x = 150, y = 400, label = "1:3")+
-  annotate("point", x = 16, y = 20, shape = 19, col="dodgerblue")+
+  annotate("point", x = 16, y = 20, shape = 18, col="coral", size = 4)+
   scale_shape_manual(values = c("Lake" = 19, "No lake" = 1))+
   ylab(expression("Sep–May CO"[2]~"("*mu*M*")"))+
   xlab(expression("June–Aug CO"[2]~"("*mu*M*")"))+
