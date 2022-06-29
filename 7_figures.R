@@ -30,6 +30,7 @@ map_fig <- ggplot()+
   ylab("Longitude")
 
 ggsave(paste0(figures_path, "fig_1.png"), map_fig, width = 84, height = 90, units = "mm")
+ggsave(paste0(figures_path, "fig_1.pdf"), map_fig, width = 84, height = 90, units = "mm")
 
 #Figure 3
 figure_2_data <- read_excel(rawdata_path, sheet = "figure_2") |> 
@@ -39,7 +40,7 @@ figure_2_data <- read_excel(rawdata_path, sheet = "figure_2") |>
 
 ann_text <- data.frame(position = 1,
                        co2_morning = 720,
-                       lab = c("Græse Å", "Havelse Å", "Mølle Å", "Guden Å"),
+                       lab = c("River Græse", "River Havelse", "River Mølle", "River Guden"),
                        site = factor(c("græse", "havelse", "mølle", "guden")
                                      , levels = c("græse", "havelse", "mølle", "guden")))
 
@@ -60,6 +61,7 @@ figure_2 <- figure_2_data |>
   xlab("Fluvial network position")
 
 ggsave(paste0(figures_path, "fig_3.png"), figure_2, width = 129, height = 129, units = "mm")
+ggsave(paste0(figures_path, "fig_3.pdf"), figure_2, width = 129, height = 129, units = "mm")
 
 #Figure 2
 figure_3_pred <- data.frame(log_a = seq(-1.1, 2.1, 0.1)) %>% 
@@ -85,6 +87,7 @@ figure_3_fig <- figure_3_data %>%
   xlab(expression(Wetted~area~"(m"^{2}*")"))
 
 ggsave(paste0(figures_path, "fig_2.png"), figure_3_fig, width = 129, height = 90, units = "mm")
+ggsave(paste0(figures_path, "fig_2.pdf"), figure_3_fig, width = 129, height = 90, units = "mm")
 
 #Figure 4
 figure_4_data <- read_excel(rawdata_path, sheet = "figure_4") %>% 
@@ -104,14 +107,15 @@ figure_4_fig <- figure_4_data %>%
   annotate("text", x = 150, y = 400, label = "1:3")+
   annotate("point", x = 16, y = 20, shape = 18, col="coral", size = 4)+
   scale_shape_manual(values = c("Lake" = 19, "No lake" = 1))+
-  ylab(expression("Sep–May CO"[2]~"("*mu*M*")"))+
-  xlab(expression("June–Aug CO"[2]~"("*mu*M*")"))+
+  ylab(expression("Sep. to May CO"[2]~"("*mu*M*")"))+
+  xlab(expression("June to Aug. CO"[2]~"("*mu*M*")"))+
   theme(legend.position = c(0.7, 0.25))+
   coord_equal()
 
 figure_4_fig
 
 ggsave(paste0(figures_path, "fig_4.png"), figure_4_fig, width = 129, height = 90, units = "mm")
+ggsave(paste0(figures_path, "fig_4.pdf"), figure_4_fig, width = 129, height = 90, units = "mm")
 
 #Figure 5
 figure_5_fig <- figure_5_data %>% 
@@ -130,6 +134,7 @@ figure_5_fig <- figure_5_data %>%
 figure_5_fig
 
 ggsave(paste0(figures_path, "fig_5.png"), figure_5_fig, width = 129, height = 90, units = "mm")
+ggsave(paste0(figures_path, "fig_5.pdf"), figure_5_fig, width = 129, height = 90, units = "mm")
 
 #Figure 6
 x <- figure_6_data$log_chl
@@ -245,9 +250,10 @@ figure_8b_wtr_fig <- figure_8_data %>%
   xlab("Water temperature (°C)")+
   theme(legend.position = c(0.85, 0.85))
 
-fig_8 <- figure_8_fig+figure_8b_wtr_fig+plot_layout(guides = "collect", ncol=1)+plot_annotation(tag_levels = "A")
+fig_8 <- figure_8_fig+figure_8b_wtr_fig+plot_layout(guides = "collect", ncol=1)+plot_annotation(tag_levels = "a")
 
 ggsave(paste0(figures_path, "fig_8.png"), fig_8, width = 129, height = 180, units = "mm")
+ggsave(paste0(figures_path, "fig_8.pdf"), fig_8, width = 129, height = 180, units = "mm")
 
 #Figure S1
 figure_s1_pred <- data.frame(co2_morning = seq(0, 735, 1)) %>% 
