@@ -3,7 +3,7 @@ source("0_libs_and_funcs.R")
 #Statistics
 
 #Figure 2
-figure_3_data <- read_excel(rawdata_path, sheet = "figure_3") %>%
+figure_2_data <- read_excel(rawdata_path, sheet = "figure_2") %>%
   mutate(log_a = log10(a),
          log_co2 = log10(co2_morning)) |> 
   select(log_a, log_co2, position) |> 
@@ -11,11 +11,11 @@ figure_3_data <- read_excel(rawdata_path, sheet = "figure_3") %>%
   na.omit() |> 
   mutate(`Lake influence` = ifelse(position == "up", "No lake", "Lake"))
 
-qr_10 <- rq(log_co2~log_a, tau = 0.1, data = figure_3_data[figure_3_data$position == "up",])
+qr_10 <- rq(log_co2~log_a, tau = 0.1, data = figure_2_data[figure_2_data$position == "up",])
 summary(qr_10, "boot")
-qr_50 <- rq(log_co2~log_a, tau = 0.5, data = figure_3_data[figure_3_data$position == "up",])
+qr_50 <- rq(log_co2~log_a, tau = 0.5, data = figure_2_data[figure_2_data$position == "up",])
 summary(qr_50, "boot")
-qr_90 <- rq(log_co2~log_a, tau = 0.9, data = figure_3_data[figure_3_data$position == "up",])
+qr_90 <- rq(log_co2~log_a, tau = 0.9, data = figure_2_data[figure_2_data$position == "up",])
 summary(qr_90, "boot")
 
 #Figure 5
@@ -59,7 +59,7 @@ drop1(figure_6_lm5, test = "F")
 summary(figure_6_lm5)
 
 #Figure 8
-figure_8_data <- read_excel(rawdata_path, sheet = "figure_3") %>% 
+figure_8_data <- read_excel(rawdata_path, sheet = "figure_2") %>% 
   filter(!is.na(position)) %>% 
   mutate(log_a = log10(a),
          `Lake influence` = factor(ifelse(position == "up", "No lake", "Lake")))
@@ -115,11 +115,11 @@ merge <- discharge %>%
   left_join(catchment_df)
 
 #Relationship between co2 flux and index/catch area
-table_2_mod <- read_excel(rawdata_path, sheet = "table_2") %>% 
-  select(co2_flux = 7, index = 9, total_area = 10) %>% 
+co2_gw_mod <- read_excel("data/table_data.xlsx", sheet = "table_s1") %>% 
+  select(co2_flux = 8, index = 10, total_area = 11) %>% 
   na.omit() 
 
-co2_gw_lm0 <- lm(co2_flux~index*log10(total_area), data = table_2_mod)
+co2_gw_lm0 <- lm(co2_flux~index*log10(total_area), data = co2_gw_mod)
 drop1(co2_gw_lm0, test = "F")
 co2_gw_lm1 <- update(co2_gw_lm0, . ~ . -index:log10(total_area))
 drop1(co2_gw_lm1, test = "F")
