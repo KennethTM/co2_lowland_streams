@@ -31,7 +31,8 @@ map_fig <- ggplot()+
   annotate("text", x=581911, y=6162329, label = "Funen")+
   xlab("Latitude")+
   ylab("Longitude")
-#st_as_sf(data.frame(x=11.8, y=56.2), coords=c("x", "y"), crs=4326) |> st_transform(25832)
+
+map_fig
 
 ggsave(paste0(figures_path, "fig_1.png"), map_fig, width = 84, height = 90, units = "mm")
 ggsave(paste0(figures_path, "fig_1.pdf"), map_fig, width = 84, height = 90, units = "mm")
@@ -73,8 +74,8 @@ figure_3_data <- read_excel(rawdata_path, sheet = "figure_3") |>
 ann_text <- data.frame(position = 1,
                        co2_morning = 720,
                        lab = c("River Græse", "River Havelse", "River Mølle", "River Guden"),
-                       site = factor(c("græse", "havelse", "mølle", "guden")
-                                     , levels = c("græse", "havelse", "mølle", "guden")))
+                       site = factor(c("græse", "havelse", "mølle", "guden"), 
+                                     levels = c("græse", "havelse", "mølle", "guden")))
 
 figure_3 <- figure_3_data |> 
   ggplot(aes(position, co2_morning))+
@@ -98,11 +99,51 @@ ggsave(paste0(figures_path, "fig_3.png"), figure_3, width = 129, height = 129, u
 ggsave(paste0(figures_path, "fig_3.pdf"), figure_3, width = 129, height = 129, units = "mm")
 
 #Figure 4
-figure_4_data <- read_excel(rawdata_path, sheet = "figure_4") %>% 
+figure_4_fig <- figure_4_data %>% 
+  ggplot(aes(chl, co2))+
+  geom_smooth(method = "lm", color="black")+
+  geom_point(aes(shape=`Time of day`))+
+  scale_y_log10()+
+  scale_x_log10()+
+  scale_shape_manual(values=c(1, 19))+
+  ylab(expression("CO"[2]~"("*mu*M*")"))+
+  xlab(expression("Chl. "*italic(a)~"("*mu*g~L^{-1}*")"))+
+  scale_color_viridis_d()+
+  annotate("text", x=50, y=100, label = lm_eqn(figure_4_lm2), parse=TRUE)+
+  theme(legend.position = c(0.2, 0.2))
+
+figure_4_fig
+
+ggsave(paste0(figures_path, "fig_4.png"), figure_4_fig, width = 129, height = 90, units = "mm")
+ggsave(paste0(figures_path, "fig_4.pdf"), figure_4_fig, width = 129, height = 90, units = "mm")
+
+#Figure 5
+x <- figure_5_data$log_chl
+y <- figure_5_data$wtr_morning
+z <- figure_5_data$log_co2_morning
+fit <- lm(z ~ x + y)
+
+grid.lines <- 40
+x.pred <- seq(min(x), max(x), length.out = grid.lines)
+y.pred <- seq(min(y), max(y), length.out = grid.lines)
+xy <- expand.grid( x = x.pred, y = y.pred)
+z.pred <- matrix(predict(fit, newdata = xy), nrow = grid.lines, ncol = grid.lines)
+fitpoints <- predict(fit)
+
+svg(paste0(figures_path, "fig_5_raw.svg"), width = 5.07874, height = 5.07874)
+scatter3D(x, y, z, pch = 19, cex = 1, colvar = NULL, col="black",
+          theta = 120, phi = 20, bty="b", ticktype="detailed",
+          xlab = "log10(Chl. a)", ylab = "Water temp.", zlab = "log10(CO2)",
+          surf = list(x = x.pred, y = y.pred, z = z.pred, facets = TRUE, fit = fitpoints,
+                      col=ramp.col(col = c("seagreen1", "dodgerblue3"), n = 300, alpha=0.5)))
+dev.off()
+
+#Figure 6
+figure_6_data <- read_excel(rawdata_path, sheet = "figure_6") %>% 
   na.omit() %>% 
   mutate(`Lake influence` = factor(ifelse(lake == 0, "No lake", "Lake")))
 
-figure_4_fig <- figure_4_data %>% 
+figure_6_fig <- figure_6_data %>% 
   ggplot(aes(`June-Aug`, `Sep-May`, shape = `Lake influence`)) +
   geom_abline(intercept = 0, slope=1, linetype=2)+
   geom_abline(intercept = 0, slope=2, linetype=2)+
@@ -120,50 +161,10 @@ figure_4_fig <- figure_4_data %>%
   theme(legend.position = c(0.7, 0.25))+
   coord_equal()
 
-figure_4_fig
+figure_6_fig
 
-ggsave(paste0(figures_path, "fig_4.png"), figure_4_fig, width = 129, height = 90, units = "mm")
-ggsave(paste0(figures_path, "fig_4.pdf"), figure_4_fig, width = 129, height = 90, units = "mm")
-
-#Figure 5
-figure_5_fig <- figure_5_data %>% 
-  ggplot(aes(chl, co2))+
-  geom_smooth(method = "lm", color="black")+
-  geom_point(aes(shape=`Time of day`))+
-  scale_y_log10()+
-  scale_x_log10()+
-  scale_shape_manual(values=c(1, 19))+
-  ylab(expression("CO"[2]~"("*mu*M*")"))+
-  xlab(expression("Chl. "*italic(a)~"("*mu*g~L^{-1}*")"))+
-  scale_color_viridis_d()+
-  annotate("text", x=50, y=100, label = lm_eqn(figure_5_lm2), parse=TRUE)+
-  theme(legend.position = c(0.2, 0.2))
-
-figure_5_fig
-
-ggsave(paste0(figures_path, "fig_5.png"), figure_5_fig, width = 129, height = 90, units = "mm")
-ggsave(paste0(figures_path, "fig_5.pdf"), figure_5_fig, width = 129, height = 90, units = "mm")
-
-#Figure 6
-x <- figure_6_data$log_chl
-y <- figure_6_data$wtr_morning
-z <- figure_6_data$log_co2_morning
-fit <- lm(z ~ x + y)
-
-grid.lines <- 40
-x.pred <- seq(min(x), max(x), length.out = grid.lines)
-y.pred <- seq(min(y), max(y), length.out = grid.lines)
-xy <- expand.grid( x = x.pred, y = y.pred)
-z.pred <- matrix(predict(fit, newdata = xy), nrow = grid.lines, ncol = grid.lines)
-fitpoints <- predict(fit)
-
-svg(paste0(figures_path, "fig_6_raw.svg"), width = 5.07874, height = 5.07874)
-scatter3D(x, y, z, pch = 19, cex = 1, colvar = NULL, col="black",
-          theta = 120, phi = 20, bty="b", ticktype="detailed",
-          xlab = "log10(Chl. a)", ylab = "Water temp.", zlab = "log10(CO2)",
-          surf = list(x = x.pred, y = y.pred, z = z.pred, facets = TRUE, fit = fitpoints,
-                      col=ramp.col(col = c("seagreen1", "dodgerblue3"), n = 300, alpha=0.5)))
-dev.off()
+ggsave(paste0(figures_path, "fig_6.png"), figure_6_fig, width = 129, height = 90, units = "mm")
+ggsave(paste0(figures_path, "fig_6.pdf"), figure_6_fig, width = 129, height = 90, units = "mm")
 
 #Figure 7
 inset_sites <- st_read(paste0(getwd(), "/data/lake_arre_network.kml")) %>% 
@@ -234,7 +235,7 @@ figure_8b_fig <- figure_8_data %>%
   xlab("Water temperature (°C)")+
   theme(legend.position = c(0.85, 0.85))
 
-fig_8 <- figure_8a_fig+figure_8b_fig+plot_layout(guides = "collect", ncol=1)+plot_annotation(tag_levels = "a")
+fig_8 <- figure_8a_fig+figure_8b_fig+plot_layout(guides = "collect", ncol=1)+plot_annotation(tag_levels = "A")
 
 fig_8
 
@@ -263,6 +264,29 @@ figure_s1_co2_fig <- figure_8_data %>%
   coord_cartesian(ylim = c(0, 505))
 
 ggsave(paste0(figures_path, "fig_s1.png"), figure_s1_co2_fig, width = 129, height = 100, units = "mm")
+
+#Figure S2
+figure_s2_a <- co2_gw_mod |> 
+  ggplot(aes(index, co2_flux))+
+  geom_point()+
+  geom_smooth(method = "lm", color="black")+
+  ylab(expression("CO"[2]~"flux (mg C m"^{-2}~d^{-1}*")"))+
+  scale_x_continuous(limits = c(0.35, 1))+
+  xlab("Groundwater index")
+
+figure_s2_b <- co2_gw_mod |> 
+  ggplot(aes(total_area, co2_flux))+
+  geom_point()+
+  scale_x_log10(limits=c(10, 1000))+
+  #geom_smooth(method = "lm", color="black")+
+  ylab(expression("CO"[2]~"flux (mg C m"^{-2}~d^{-1}*")"))+
+  xlab(expression("Catchment area (km"^{2}*")"))
+
+figure_s2 <- figure_s2_a+figure_s2_b+plot_layout(ncol=1)+plot_annotation(tag_levels = "A")
+
+figure_s2
+
+ggsave(paste0(figures_path, "fig_s2.png"), figure_s2, width = 129, height = 160, units = "mm")
 
 #Table 1
 merge %>% 

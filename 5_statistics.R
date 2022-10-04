@@ -3,7 +3,7 @@ source("0_libs_and_funcs.R")
 #Statistics
 
 #Figure 2
-figure_2_data <- read_excel(rawdata_path, sheet = "figure_2") %>%
+figure_2_data <- read_excel(rawdata_path, sheet = "figure_2_8") %>%
   mutate(log_a = log10(a),
          log_co2 = log10(co2_morning)) |> 
   select(log_a, log_co2, position) |> 
@@ -18,8 +18,8 @@ summary(qr_50, "boot")
 qr_90 <- rq(log_co2~log_a, tau = 0.9, data = figure_2_data[figure_2_data$position == "up",])
 summary(qr_90, "boot")
 
-#Figure 5
-figure_5_data <- read_excel(rawdata_path, sheet = "figure_5") %>% 
+#Figure 4
+figure_4_data <- read_excel(rawdata_path, sheet = "figure_4") %>% 
   gather(var_time, co2, -chl, -name, -position) %>% 
   separate(var_time, c("var", "time"), "_") %>% 
   na.omit() %>% 
@@ -28,38 +28,39 @@ figure_5_data <- read_excel(rawdata_path, sheet = "figure_5") %>%
          log_chl = log10(chl),
          `Time of day` = factor(ifelse(time == "morning", "Morning", "Afternoon"), levels = c("Morning", "Afternoon")))
 
-figure_5_lm0 <- lm(log_co2~log_chl*time, data = figure_5_data)
-figure_5_lm1 <- lm(log_co2~log_chl+time, data = figure_5_data)
-figure_5_lm2 <- lm(log_co2~log_chl, data = figure_5_data)
-anova(figure_5_lm0, figure_5_lm1, figure_5_lm2)
+figure_4_lm0 <- lm(log_co2~log_chl*time, data = figure_4_data)
+figure_4_lm1 <- lm(log_co2~log_chl+time, data = figure_4_data)
+figure_4_lm2 <- lm(log_co2~log_chl, data = figure_4_data)
+anova(figure_4_lm0, figure_4_lm1, figure_4_lm2)
+summary(figure_4_lm2)
 
-#Figure 6
-figure_6_data <- read_excel(rawdata_path, sheet = "figure_6") %>% 
+#Figure 5
+figure_5_data <- read_excel(rawdata_path, sheet = "figure_5") %>% 
   na.omit() %>% 
   mutate(co2_morning = 10^log_co2_morning,
          co2_evening = 10^log_co2_evening,
          chl = 10^log_chl)
 
-figure_6_data_lm <- bind_rows(data.frame(wtr = figure_6_data$wtr_morning, log_co2 = figure_6_data$log_co2_morning, log_chl = figure_6_data$log_chl, time = "morning"),
-                          data.frame(wtr = figure_6_data$wtr_evening, log_co2 = figure_6_data$log_co2_evening, log_chl = figure_6_data$log_chl, time = "evening"))
+figure_5_data_lm <- bind_rows(data.frame(wtr = figure_5_data$wtr_morning, log_co2 = figure_5_data$log_co2_morning, log_chl = figure_5_data$log_chl, time = "morning"),
+                          data.frame(wtr = figure_5_data$wtr_evening, log_co2 = figure_5_data$log_co2_evening, log_chl = figure_5_data$log_chl, time = "evening"))
 
-figure_6_lm0 <- lm(log_co2~wtr*log_chl*time, data = figure_6_data_lm)
-drop1(figure_6_lm0, test = "F")
-figure_6_lm1 <- update(figure_6_lm0, . ~ . -wtr:log_chl:time)
-drop1(figure_6_lm1, test = "F")
-figure_6_lm2 <- update(figure_6_lm1, . ~ . -wtr:log_chl)
-drop1(figure_6_lm2, test = "F")
-figure_6_lm3 <- update(figure_6_lm2, . ~ . -wtr:time)
-drop1(figure_6_lm3, test = "F")
-figure_6_lm4 <- update(figure_6_lm3, . ~ . -log_chl:time)
-drop1(figure_6_lm4, test = "F")
-figure_6_lm5 <- update(figure_6_lm4, . ~ . -time)
-drop1(figure_6_lm5, test = "F")
+figure_5_lm0 <- lm(log_co2~wtr*log_chl*time, data = figure_5_data_lm)
+drop1(figure_5_lm0, test = "F")
+figure_5_lm1 <- update(figure_5_lm0, . ~ . -wtr:log_chl:time)
+drop1(figure_5_lm1, test = "F")
+figure_5_lm2 <- update(figure_5_lm1, . ~ . -wtr:log_chl)
+drop1(figure_5_lm2, test = "F")
+figure_5_lm3 <- update(figure_5_lm2, . ~ . -wtr:time)
+drop1(figure_5_lm3, test = "F")
+figure_5_lm4 <- update(figure_5_lm3, . ~ . -log_chl:time)
+drop1(figure_5_lm4, test = "F")
+figure_5_lm5 <- update(figure_5_lm4, . ~ . -time)
+drop1(figure_5_lm5, test = "F")
 
-summary(figure_6_lm5)
+summary(figure_5_lm5)
 
 #Figure 8
-figure_8_data <- read_excel(rawdata_path, sheet = "figure_2") %>% 
+figure_8_data <- read_excel(rawdata_path, sheet = "figure_2_8") %>% 
   filter(!is.na(position)) %>% 
   mutate(log_a = log10(a),
          `Lake influence` = factor(ifelse(position == "up", "No lake", "Lake")))
