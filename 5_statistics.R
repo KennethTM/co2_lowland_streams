@@ -87,21 +87,22 @@ summary(co2_qr_50, "boot")
 co2_qr_90 <- rq(flux~co2_morning, tau = 0.9, data = figure_8_data)
 summary(co2_qr_90, "boot")
 
-#Table 1 
-table_1_data <- read_excel(rawdata_path, sheet = "table_1") %>% 
-  mutate(site = factor(name)) %>% 
-  filter(lakes == 0)
+# #Table 1 
+# table_1_data <- read_excel(rawdata_path, sheet = "table_1") %>% 
+#   mutate(site = factor(name)) %>% 
+#   filter(lakes == 0)
+# 
+# #Test if the response of log_co2 as a function of downstream location is the same for all sites
+# table_1_lm0 <- lm(log_co2~location + site, data = table_1_data)
+# table_1_lm1 <- lm(log_co2~location * site, data = table_1_data)
+# 
 
-#Test if the response of log_co2 as a function of downstream location is the same for all sites
-table_1_lm0 <- lm(log_co2~location + site, data = table_1_data)
-table_1_lm1 <- lm(log_co2~location * site, data = table_1_data)
+# #Interaction is not significant
+# anova(table_1_lm0, table_1_lm1)
+# anova(table_1_lm0)
+# summary(table_1_lm0)
 
-#Interaction is not significant
-anova(table_1_lm0, table_1_lm1)
-anova(table_1_lm0)
-summary(table_1_lm0)
-
-#Table 2
+#Table 1
 discharge <- read_csv(paste0(getwd(), "/data/sites_discharge.csv"))
 sites_co2 <- read_tsv(paste0(getwd(), "/data/co2_sites_kaj.txt"))
 catchment <- st_read(paste0(getwd(), "/data/gw_nonnest_clean.sqlite")) 

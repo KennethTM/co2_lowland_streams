@@ -24,10 +24,14 @@ map_fig <- ggplot()+
   geom_sf(data = gw_clean_sort, aes(fill=factor(id, levels = id)), show.legend = FALSE, col = NA)+
   geom_sf(data= stream_sites_snap, size = 0.7)+
   scale_fill_manual(values=col_vec)+
-  scale_x_continuous(breaks = xlabs, labels = paste0(xlabs,'°E')) +
+  scale_x_continuous(breaks = xlabs, labels = paste0(xlabs,'°E'))+
   scale_y_continuous(breaks = ylabs, labels = paste0(ylabs,'°N'))+
+  annotate("text", x=673700.6, y=6231868, label = "Zealand")+
+  annotate("text", x=5e+05, y=6350781, label = "Jutland")+
+  annotate("text", x=581911, y=6162329, label = "Funen")+
   xlab("Latitude")+
   ylab("Longitude")
+#st_as_sf(data.frame(x=11.8, y=56.2), coords=c("x", "y"), crs=4326) |> st_transform(25832)
 
 ggsave(paste0(figures_path, "fig_1.png"), map_fig, width = 84, height = 90, units = "mm")
 ggsave(paste0(figures_path, "fig_1.pdf"), map_fig, width = 84, height = 90, units = "mm")
@@ -261,16 +265,16 @@ figure_s1_co2_fig <- figure_8_data %>%
 ggsave(paste0(figures_path, "fig_s1.png"), figure_s1_co2_fig, width = 129, height = 100, units = "mm")
 
 #Table 1
+merge %>% 
+  mutate(catchment_area = total_area*10^-6) %>%
+  select(name, co2_flux, co2_flux_weight, index, alkalinity, catchment_area) %>%
+  write_csv(paste0(figures_path, "table_1.csv"))
+
+#Table S2
 table_1_data %>% 
   mutate(co2 = 10^log_co2) %>% 
   group_by(name) %>% 
   summarise(n = n(), co2_mean = mean(co2), 
             co2_first = co2[which.min(location)], 
             co2_last = co2[which.max(location)]) %>% 
-  write_csv(paste0(figures_path, "table_1.csv"))
-
-#Table 3
-merge %>% 
-  mutate(catchment_area = total_area*10^-6) %>%
-  select(name, co2_flux, co2_flux_weight, index, alkalinity, catchment_area) %>%
-  write_csv(paste0(figures_path, "table_3.csv"))
+  write_csv(paste0(figures_path, "table_s2.csv"))
