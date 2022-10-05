@@ -278,7 +278,6 @@ figure_s2_b <- co2_gw_mod |>
   ggplot(aes(total_area, co2_flux))+
   geom_point()+
   scale_x_log10(limits=c(10, 1000))+
-  #geom_smooth(method = "lm", color="black")+
   ylab(expression("CO"[2]~"flux (mg C m"^{-2}~d^{-1}*")"))+
   xlab(expression("Catchment area (km"^{2}*")"))
 

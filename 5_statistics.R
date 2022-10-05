@@ -92,7 +92,7 @@ summary(co2_qr_90, "boot")
 up_vs_down <- read_excel("data/table_data.xlsx", sheet = "table_s2") |> 
   mutate(co2_diff = `First site CO2` - `Last site CO2`)
 
-hist(up_vs_down$co2_diff)
+#hist(up_vs_down$co2_diff)
 
 wilcox.test(up_vs_down$`First site CO2`,
             up_vs_down$`Last site CO2`, 
