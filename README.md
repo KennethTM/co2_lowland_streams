@@ -20,4 +20,4 @@ Institute of Biology, Aarhus University, Ole Worms Allé 1, 8000 Aarhus C, Denma
 
 **Corresponding author:** Kenneth Thorø Martinsen (kenneth.martinsen@bio.ku.dk) 
 
-**Contents:** The repository contains R scripts (R versions >4.0) and data used for the analysis and figures included in the manuscript. Scripts are numbered and can be explored in that order. Data for the analysis and figures are included in seperate sheets in the 'data/data.xlsx' file. Data included in the tables in the main manuscript can be found the 'data/table_data.xlsx' file. 
+**Contents:** The repository contains scripts (R versions >4.0 and Python >3.9) and data used for the analysis and figures included in the manuscript. Scripts are numbered and can be explored in that order. Data for the analysis and figures are included in seperate sheets in the 'data/data.xlsx' file. Data included in the tables in the main manuscript can be found the 'data/table_data.xlsx' file. 
